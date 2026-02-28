@@ -213,7 +213,7 @@ def run_bayesian(X, Y, alpha=0.05):
     return slopes, se_naive, ci_lo, ci_hi
 
 def run_amri(X, Y, alpha=0.05):
-    """AMRI: Adaptive Misspecification-Robust Inference."""
+    """AMRI v1: Adaptive Misspecification-Robust Inference (hard switching)."""
     B, n = X.shape
     slopes, se_naive, resid, SXX, sigma2 = batch_ols_full(X, Y)
     se_hc3 = batch_sandwich_hc3(X, resid, SXX)
@@ -223,6 +223,29 @@ def run_amri(X, Y, alpha=0.05):
     # Adaptive: use sandwich when misspecification detected, else naive
     misspec = (ratio > threshold) | (ratio < 1.0 / threshold)
     se = np.where(misspec, se_hc3 * 1.05, se_naive)
+
+    t_val = stats.t.ppf(1 - alpha/2, n - 2)
+    ci_lo = slopes - t_val * se
+    ci_hi = slopes + t_val * se
+    return slopes, se, ci_lo, ci_hi
+
+
+def run_amri_v2(X, Y, alpha=0.05, c1=1.0, c2=2.0):
+    """AMRI v2: Soft-thresholding variant (continuous, no pre-test discontinuity)."""
+    B, n = X.shape
+    slopes, se_naive, resid, SXX, sigma2 = batch_ols_full(X, Y)
+    se_hc3 = batch_sandwich_hc3(X, resid, SXX)
+
+    ratio = se_hc3 / np.maximum(se_naive, 1e-10)
+    log_ratio = np.abs(np.log(ratio))
+
+    # Smooth blending weight: ramps from 0 to 1 between c1/sqrt(n) and c2/sqrt(n)
+    lower = c1 / np.sqrt(n)
+    upper = c2 / np.sqrt(n)
+    w = np.clip((log_ratio - lower) / (upper - lower), 0.0, 1.0)
+
+    # Blended SE: smooth interpolation between naive and HC3
+    se = (1 - w) * se_naive + w * se_hc3
 
     t_val = stats.t.ppf(1 - alpha/2, n - 2)
     ci_lo = slopes - t_val * se
@@ -300,6 +323,7 @@ METHODS = {
     'Sandwich_HC3': run_hc3,
     'Bayesian': run_bayesian,
     'AMRI': run_amri,
+    'AMRI_v2': run_amri_v2,
     'Pairs_Bootstrap': run_pairs_bootstrap,
     'Wild_Bootstrap': run_wild_bootstrap,
     'Bootstrap_t': run_bootstrap_t,

@@ -345,7 +345,7 @@ def method_bayesian_normal(X, Y, alpha=0.05):
 
 
 def method_amri(X, Y, alpha=0.05):
-    """Method 10: Adaptive Misspecification-Robust Inference (AMRI) - our proposed method."""
+    """Method 10: Adaptive Misspecification-Robust Inference (AMRI v1) - hard switching."""
     n = len(Y)
     Xa = sm.add_constant(X)
     try:
@@ -374,6 +374,39 @@ def method_amri(X, Y, alpha=0.05):
             se_used = se_naive
             ci_low = model_naive.conf_int(alpha=alpha)[1][0]
             ci_high = model_naive.conf_int(alpha=alpha)[1][1]
+
+        return theta, se_used, ci_low, ci_high
+    except Exception:
+        return np.nan, np.nan, np.nan, np.nan
+
+
+def method_amri_v2(X, Y, alpha=0.05, c1=1.0, c2=2.0):
+    """Method 11: AMRI v2 - Soft-thresholding variant (no discontinuity)."""
+    n = len(Y)
+    Xa = sm.add_constant(X)
+    try:
+        model_naive = sm.OLS(Y, Xa).fit()
+        model_sandwich = sm.OLS(Y, Xa).fit(cov_type='HC3')
+
+        theta = model_naive.params[1]
+        se_naive = model_naive.bse[1]
+        se_sandwich = model_sandwich.bse[1]
+
+        # Soft-thresholding blending weight
+        ratio = se_sandwich / max(se_naive, 1e-10)
+        log_ratio = abs(np.log(ratio))
+        lower = c1 / np.sqrt(n)
+        upper = c2 / np.sqrt(n)
+
+        if upper <= lower:
+            w = 1.0 if log_ratio > lower else 0.0
+        else:
+            w = np.clip((log_ratio - lower) / (upper - lower), 0.0, 1.0)
+
+        se_used = (1 - w) * se_naive + w * se_sandwich
+        t_val = stats.t.ppf(1 - alpha/2, n - 2)
+        ci_low = theta - t_val * se_used
+        ci_high = theta + t_val * se_used
 
         return theta, se_used, ci_low, ci_high
     except Exception:
@@ -419,6 +452,7 @@ METHODS_LINEAR = {
     'Jackknife': method_jackknife_plus,
     'Bayesian_Normal': method_bayesian_normal,
     'AMRI': method_amri,
+    'AMRI_v2': method_amri_v2,
 }
 
 METHODS_GLM = {
