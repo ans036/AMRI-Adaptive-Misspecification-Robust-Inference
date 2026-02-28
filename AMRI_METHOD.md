@@ -1,6 +1,6 @@
 # AMRI: Adaptive Misspecification-Robust Inference
 
-## A Novel Method for Confidence Interval Construction Under Model Uncertainty
+## A Practical Method for Confidence Interval Construction Under Model Uncertainty
 
 ---
 
@@ -14,10 +14,12 @@ Robust alternatives (sandwich standard errors, bootstrap methods) provide
 protection against misspecification, but at a cost: they produce wider
 intervals even when the model is perfectly correct.
 
-**AMRI** (Adaptive Misspecification-Robust Inference) resolves this fundamental
-tradeoff by using a data-driven diagnostic to detect misspecification in real
-time and adaptively switch between efficient model-based inference and robust
-sandwich-based inference.
+**AMRI** (Adaptive Misspecification-Robust Inference) addresses this tradeoff
+by using a data-driven diagnostic to detect misspecification in real time and
+adaptively blend efficient model-based inference with robust sandwich-based
+inference. We propose two variants: AMRI v1 (hard-switching) and AMRI v2
+(soft-thresholding), the latter designed to address theoretical concerns
+from the pre-test estimator literature (Leeb & Potscher 2005).
 
 ### The Core Insight
 
@@ -27,7 +29,8 @@ the model-based standard error serves as a diagnostic signal:
 - When the model is correct: SE_sandwich / SE_naive ≈ 1.0
 - When the model is wrong: SE_sandwich / SE_naive >> 1.0 (or << 1.0)
 
-AMRI exploits this signal to get the best of both worlds.
+AMRI exploits this signal to achieve practical near-optimality — near-efficient
+when the model is correct, near-robust when it is not.
 
 ---
 
@@ -175,15 +178,19 @@ misspecification with probability → 1. Once detected, it uses SE_HC3*1.05,
 which provides valid coverage. Coverage → 0.95 (or slightly above due to
 the 1.05 inflation).
 
-### 3.3 Oracle Property
+### 3.3 Asymptotic Detection Consistency
 
-AMRI asymptotically achieves the performance of an oracle that knows whether
-misspecification is present:
-- Oracle under correct spec: uses SE_naive → AMRI does the same
-- Oracle under misspecification: uses SE_HC3 → AMRI detects and switches
+For any fixed delta > 0, the probability that AMRI detects misspecification
+converges to 1 as n → infinity. This follows from:
+- R converges to a constant c != 1
+- tau(n) → 1
+- The gap |R - 1| eventually exceeds |tau(n) - 1|
 
-The detection probability converges to 1 as n → infinity for any fixed
-delta > 0.
+**Important caveat (Leeb & Potscher 2005):** This pointwise asymptotic result
+does NOT imply uniform coverage. For sequences of alternatives delta_n → 0
+at certain rates, AMRI v1 may exhibit non-uniform coverage at the switching
+boundary. AMRI v2 (soft-thresholding) mitigates this by replacing the
+discontinuous switch with a smooth blend.
 
 ---
 
@@ -433,7 +440,7 @@ missing the true parameter.
 These methods protect coverage but always produce wider intervals than
 necessary, even when the model is correct.
 
-### 6.3 AMRI: The Best of Both Worlds
+### 6.3 AMRI: Practical Near-Optimality
 
 | Metric | AMRI | Best Competitor | Advantage |
 |--------|------|----------------|-----------|
@@ -491,39 +498,168 @@ excessively widening intervals.
 
 ---
 
-## 8. Limitations and Future Work
+## 8. Related Work & Positioning
 
-### 8.1 Current Limitations
+### 8.1 Key Prior Art
 
-1. **Simple regression only:** Current implementation and tests are for
+AMRI must be understood in the context of several important lines of work:
+
+**Pre-test estimators.** AMRI v1 is a pre-test estimator: it tests (via the
+SE ratio) and then selects an SE. Leeb & Potscher (2005, 2006) proved
+fundamental impossibility results for post-selection inference — the
+conditional distribution of pre-test estimators cannot be consistently
+estimated. Guggenberger (2010) showed Hausman pre-tests can have asymptotic
+size equal to 1. These are serious concerns that AMRI v1 must acknowledge.
+
+**Adaptive inference.** Armstrong, Kline & Sun (2025, *Econometrica*) address
+the same robustness-efficiency tradeoff. Their key insight: use soft
+thresholding (shrinkage) rather than hard switching. They prove minimax
+optimality for point estimation but note that adaptive CIs remain open.
+
+**Impossibility results.** Low (1997) and Armstrong & Kolesar (2018, 2020)
+showed that adaptive CIs cannot simultaneously achieve full efficiency under
+correct specification and full robustness under misspecification, in general
+nonparametric settings.
+
+**SE ratio as diagnostic.** King & Roberts (2015) proposed comparing robust
+vs classical SEs as a misspecification diagnostic (threshold 1.5x). Chavance &
+Escolano (2016) used the same ratio with fixed threshold [0.75, 1.33]. Neither
+constructs CIs from the diagnostic.
+
+### 8.2 How AMRI Differs
+
+| Feature | Prior Work | AMRI |
+|---------|-----------|------|
+| SE ratio diagnostic | Fixed thresholds (1.5x, 1.33x) | Adaptive: tau(n) = 1 + 2/sqrt(n) |
+| After detection | Diagnostic only; no CI construction | Constructs adaptive CI |
+| Switching | — | Hard (v1) or Soft (v2) |
+| Framework | Minimax (Armstrong et al.) | Practical near-optimality (average-case) |
+| Scope | General (point estimation) | Specific (linear regression CIs) |
+
+### 8.3 Honest Assessment
+
+AMRI v1's hard switching is its main theoretical weakness. At the boundary
+R ≈ tau(n), coverage may be non-uniform (Leeb & Potscher 2005). Our
+adversarial testing suggests boundary effects are empirically mild, but we
+cannot prove uniform coverage. AMRI v2 (soft-thresholding) is proposed
+to address this — see Section 9.
+
+We do NOT claim AMRI achieves the theoretically impossible "best of both
+worlds." We claim practical near-optimality: bounded regret, Pareto dominance
+in the average case across realistic DGPs, and empirically validated
+robustness across 11 real datasets and 10 adversarial DGPs.
+
+---
+
+## 9. AMRI v2: Soft-Thresholding (Proposed Improvement)
+
+### 9.1 Motivation
+
+The literature review identified hard-switching as AMRI v1's theoretical
+Achilles heel. Armstrong, Kline & Sun (2025) deliberately use soft-
+thresholding. Leeb & Potscher (2005) showed hard pre-test procedures
+have non-uniform coverage. AMRI v2 replaces the binary switch with a
+smooth blending function.
+
+### 9.2 Algorithm
+
+```
+ALGORITHM: AMRI_v2(X, Y, alpha)
+─────────────────────────────────────────────────────────────────
+Steps 1-4: Same as AMRI v1 (compute SE_naive, SE_HC3, R, tau)
+
+Step 5: Compute smooth blending weight
+    s = |log(R)|                           (symmetric in R and 1/R)
+    lo = c1 / sqrt(n)     where c1 = 1.0   (start blending threshold)
+    hi = c2 / sqrt(n)     where c2 = 2.0   (full robust threshold)
+    w = clip( (s - lo) / (hi - lo), 0, 1 ) (smooth weight in [0, 1])
+
+Step 6: Blended standard error
+    SE = (1 - w) * SE_naive + w * SE_HC3
+
+Step 7: Construct confidence interval
+    CI = theta_hat +/- t_{n-2, 1-alpha/2} * SE
+─────────────────────────────────────────────────────────────────
+```
+
+### 9.3 Properties
+
+| Property | AMRI v1 (Hard) | AMRI v2 (Soft) |
+|----------|---------------|----------------|
+| SE function | Discontinuous step | Smooth interpolation |
+| Leeb-Potscher concern | Applies fully | Mitigated (continuous) |
+| Boundary behavior | Coverage may dip | Smooth transition |
+| At R=1 (no misspec) | SE = SE_naive | SE = SE_naive (w=0) |
+| At R >> tau (severe) | SE = 1.05*SE_HC3 | SE ≈ SE_HC3 (w→1) |
+| Armstrong et al. aligned | No | Yes |
+
+### 9.4 Implementation
+
+```python
+def amri_v2(X, Y, alpha=0.05, c1=1.0, c2=2.0):
+    n = len(Y)
+    Xa = sm.add_constant(X)
+    naive_fit = sm.OLS(Y, Xa).fit()
+    robust_fit = sm.OLS(Y, Xa).fit(cov_type='HC3')
+    theta = naive_fit.params[1]
+    se_naive = naive_fit.bse[1]
+    se_hc3 = robust_fit.bse[1]
+
+    ratio = se_hc3 / max(se_naive, 1e-10)
+    s = abs(np.log(ratio))
+    lo = c1 / np.sqrt(n)
+    hi = c2 / np.sqrt(n)
+    w = np.clip((s - lo) / (hi - lo), 0.0, 1.0)
+
+    se = (1 - w) * se_naive + w * se_hc3
+    t_val = stats.t.ppf(1 - alpha/2, n - 2)
+    return theta, se, theta - t_val * se, theta + t_val * se
+```
+
+---
+
+## 10. Limitations and Future Work
+
+### 10.1 Current Limitations
+
+1. **Pre-test coverage non-uniformity (v1):** AMRI v1's hard switching creates
+   a potential coverage "notch" at R ≈ tau. AMRI v2 mitigates but may not
+   fully eliminate this.
+
+2. **Simple regression only:** Current implementation and tests are for
    Y = a + bX + epsilon. Extension to multiple regression is straightforward
    (replace SXX with (X'X)^{-1} diagonal entries).
 
-2. **Threshold calibration:** The 2/sqrt(n) factor and 1.05 inflation were
-   chosen heuristically. Optimal values could be derived from a decision-
-   theoretic framework.
+3. **Threshold calibration:** The 2/sqrt(n) factor and blending constants
+   (c1=1, c2=2) were chosen heuristically. Optimal values could be derived
+   from a decision-theoretic framework.
 
-3. **Binary switching:** AMRI currently makes a hard switch. A smooth
-   blending (e.g., using the ratio to interpolate between SE_naive and
-   SE_HC3) could improve finite-sample performance.
+4. **Pseudo-true parameters:** Like all sandwich-based methods, AMRI targets
+   the pseudo-true parameter (KL minimizer), not the causal parameter. If
+   the functional form is wrong, the point estimate may be biased even with
+   correct SEs (Freedman 2006; King & Roberts 2015).
 
-4. **Detection power at mild misspecification:** At delta=0.25 with small n,
-   the SE ratio may not exceed the threshold, leaving AMRI in "naive mode"
-   when mild robustness is needed.
+5. **Average-case, not minimax:** Our results demonstrate average-case
+   superiority across realistic DGPs, not worst-case minimax optimality.
+   The impossibility results of Low (1997) imply minimax-optimal adaptive
+   CIs must pay a width penalty.
 
-### 8.2 Future Directions
+### 10.2 Future Directions
 
-1. **Smooth AMRI:** Replace binary threshold with continuous blending:
-   SE_AMRI = w * SE_naive + (1-w) * SE_HC3, where w = f(R, n)
+1. **Calibrate AMRI v2:** Optimize c1, c2 to minimize expected width subject
+   to coverage >= 0.95 - epsilon via simulation-based calibration.
 
-2. **Optimal threshold:** Derive tau(n) to minimize expected interval width
-   subject to coverage >= 0.95 - epsilon.
+2. **Formal uniform coverage proof:** Derive conditions under which AMRI v2
+   achieves asymptotically uniform coverage over a relevant parameter space.
 
 3. **Extension to GLMs:** Apply the same principle using quasi-likelihood
    vs sandwich SE ratios in generalized linear models.
 
-4. **Theoretical coverage guarantee:** Derive formal asymptotic coverage
-   bounds under classes of misspecification (Lipschitz, bounded moments, etc.)
+4. **Connection to Armstrong et al.:** Formalize AMRI v2 as a special case
+   of their soft-thresholding framework in the heteroscedasticity setting.
+
+5. **Multiple regression:** Extend to p > 1 predictors, potentially using
+   a multivariate diagnostic (e.g., trace of robust/naive covariance ratio)
 
 ---
 

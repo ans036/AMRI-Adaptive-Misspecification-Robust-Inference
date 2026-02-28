@@ -221,29 +221,106 @@ the regime in real time.
 
 ---
 
-# PART III: FORMAL HYPOTHESES
+# PART III: FORMAL HYPOTHESES (TIERED)
 
-## H1: Misspecification Harms Model-Based Inference
-
-**Statement:** Under model misspecification with severity delta > 0, the coverage
-of model-based (naive OLS) confidence intervals monotonically decreases as delta
-increases. The degradation rate is approximately -0.233 coverage units per unit delta.
-
-**Evidence:**
-- Spearman rho = -0.988 between delta and naive coverage (8/8 DGP-n combos significant)
-- Fisher combined p < 10^{-10}
-- Coverage drops from 0.962 (delta=0) to 0.686 (delta=1, DGP1, n=500)
-- Average drop: 19.5 percentage points
-
-**Statistical guarantee:** Confirmed with Fisher's combined test across all
-DGP/n combinations. Perfect negative rank correlation in 8/8 tested conditions.
+Hypotheses are organized into three tiers based on novelty, following an
+extensive literature review against the current state of the art.
 
 ---
 
-## H2: Sandwich Standard Errors Provide Universal Robustness
+## TIER 1: PRIMARY — GENUINELY NOVEL CONTRIBUTIONS
 
-**Statement:** Sandwich HC3 standard error-based confidence intervals maintain
-coverage probability >= 0.93 for all delta in [0,1], all sample sizes n >= 50,
+These hypotheses have no direct precedent in the published literature.
+
+---
+
+### H4: Unified Coverage Degradation Rate Ordering
+
+**Novelty:** No prior study provides a formal unified ranking of coverage
+degradation rates across multiple inference methods. Individual pairwise
+comparisons exist (e.g., Naive >> Robust is textbook), but the complete
+ordering across 8 simultaneous methods is new.
+
+**Statement:** Coverage degradation rates satisfy:
+Naive(-0.233) >> Wild Boot(-0.013) > Pairs Boot(-0.009)
+>= HC0(-0.007) >= HC3(-0.006) >= Boot-t(-0.003) >= AMRI(+0.007)
+
+**Key finding:** AMRI is the ONLY method with a positive slope — its coverage
+actually *improves* as misspecification severity increases.
+
+**Evidence:**
+- Mann-Whitney U: Naive vs AMRI (p=0.00008), Naive vs HC3 (p=0.00008)
+- AMRI positive slope confirmed across both tested DGPs
+
+**Statistical guarantee:** All Naive vs robust comparisons significant at
+p < 0.001, surviving Bonferroni and Hochberg correction.
+
+**Status:** CONFIRMED | p < 0.001 | **Very Strong**
+
+---
+
+### H6: Soft-Thresholding AMRI Provides More Uniform Coverage (PROPOSED)
+
+**Novelty:** Directly addresses the primary theoretical criticism from
+Leeb & Potscher (2005) and follows the recommendation of Armstrong, Kline
+& Sun (2025, *Econometrica*) who advocate soft-thresholding over hard switching.
+
+**Statement:** Soft-thresholding AMRI v2 provides:
+(a) More uniform coverage across the (R, n) parameter space than AMRI v1
+(b) Comparable average coverage to hard-switching AMRI v1
+(c) Smooth, continuous dependence of CI width on the diagnostic ratio
+(d) No coverage "notch" at the switching boundary
+
+**Algorithm (AMRI v2):**
+```
+w(R, n) = clip( (|log(R)| - c1/sqrt(n)) / (c2/sqrt(n)), 0, 1 )
+SE_AMRI = (1 - w) * SE_naive + w * SE_HC3
+```
+where c1=1.0 (start blending) and c2=2.0 (full robust).
+
+**Status:** PROPOSED — requires implementation and testing
+
+---
+
+### H7: SE Ratio Detection Power Increases Monotonically with n (PROPOSED)
+
+**Novelty:** While Hausman (1978) established the general principle of
+comparing estimators, the specific behavior of the SE_HC3/SE_naive ratio's
+detection power as a function of sample size has not been formally characterized.
+
+**Statement:** Under fixed misspecification (delta > 0), P(R > tau(n))
+is a monotonically increasing function of n, converging to 1.
+
+**Mechanism:**
+- Sampling variability of R shrinks as O(1/sqrt(n))
+- Threshold tau(n) = 1 + 2/sqrt(n) shrinks toward 1
+- True R converges to constant c != 1
+- These three forces combine to guarantee consistent detection
+
+**Status:** PROPOSED — can be verified from existing simulation data and
+potentially proven analytically
+
+---
+
+## TIER 2: CORE — REVISED CENTRAL CLAIMS
+
+These hypotheses address known problems but contribute new formal evidence
+or repositioned claims that are defensible against the literature.
+
+---
+
+### H2: HC3 Maintains a Universal Empirical Coverage Floor
+
+**Prior art:** HC3's good finite-sample behavior is documented empirically
+(Long & Ervin 2000; MacKinnon 2012). Portnoy et al. (2024, 40,571 real
+regressions) found HC3 tends to be conservative. However, NO formal universal
+coverage bound has been proven or systematically tested.
+
+**What is new:** The first comprehensive empirical coverage floor for HC3
+across a fully factorial design (6 DGPs x 5 deltas x 6 sample sizes).
+
+**Statement:** Sandwich HC3 confidence intervals maintain coverage
+probability >= 0.93 for all delta in [0,1], all sample sizes n >= 50,
 and all tested misspecification types.
 
 **Evidence:**
@@ -255,41 +332,112 @@ and all tested misspecification types.
 **Statistical guarantee:** Simes intersection test confirms the null hypothesis
 of universal coverage >= 0.93 cannot be rejected at alpha=0.05.
 
+**Status:** CONFIRMED | Simes NS | **Strong**
+
 ---
 
-## H3: AMRI Achieves Best-of-Both-Worlds (KEY CONTRIBUTION)
+### H3 (REVISED): AMRI Achieves Practical Near-Optimality with Bounded Regret
 
-**Statement:** The Adaptive Misspecification-Robust Inference (AMRI) method achieves:
-(a) Coverage within 1% of naive OLS when delta=0 (efficiency)
-(b) Coverage >= Sandwich HC3 when delta > 0 (robustness)
-(c) Width overhead <= 6.3% relative to HC3 (bounded cost)
+**Prior art (CRITICAL):**
+- Armstrong, Kline & Sun (2025, *Econometrica*) proved that perfect adaptation
+  — full efficiency under correct specification AND full robustness under
+  misspecification — is **impossible** for CIs in general (Low 1997).
+- Leeb & Potscher (2005) showed pre-test CIs have non-uniform coverage.
+- Guggenberger (2010) showed Hausman pre-test can have asymptotic size = 1.
+
+**What we originally claimed:** "Best of both worlds" — this **overclaimed**.
+
+**Revised statement:** AMRI v1 (hard-switching) achieves PRACTICAL
+near-optimality, defined as:
+(a) Width within 2.2% of naive OLS at delta=0 (near-efficiency)
+(b) Coverage statistically superior to HC3 at delta>0 (near-robustness)
+(c) Width overhead bounded at <= 6.3% relative to HC3 (bounded cost)
+(d) The coverage-width tradeoff is Pareto-dominant over all tested alternatives
+    in the AVERAGE case across realistic DGPs
+
+**This is NOT a claim of oracle optimality or minimax optimality.**
+The impossibility results of Low (1997) apply to worst-case minimax settings;
+AMRI's advantage is empirical, across realistic scenarios.
+
+**Known limitation:** At the switching boundary (R ≈ tau), coverage may be
+non-uniform. Our adversarial testing (10/10 hostile DGPs survived, including
+threshold-edge attacks) provides empirical evidence that boundary effects
+are mild, but we cannot prove uniform coverage theoretically. AMRI v2
+(soft-thresholding, see H6) is proposed to address this.
 
 **Evidence:**
-- **Part A (Efficiency):** Mean cov diff = +0.001 (p=0.16, ns), max width overhead = 2.15%
-- **Part B (Robustness):** AMRI beats HC3 by +0.56pp (paired t: p=0.0007; sign test: 20/25, p=0.002)
-- **Part C (Width):** Max AMRI/HC3 width ratio = 1.063 (within 1.1 bound)
+- **Near-efficiency:** Mean cov diff = +0.001 (p=0.16, ns), max width overhead = 2.15%
+- **Near-robustness:** AMRI beats HC3 by +0.56pp (paired t: p=0.0007; sign test: 20/25, p=0.002)
+- **Bounded cost:** Max AMRI/HC3 width ratio = 1.063
 
 **Statistical guarantee:** Paired t-test: p=0.0007. Sign test: p=0.002.
-Both survive Bonferroni correction for 7 comparisons (0.003 < 0.05/7 = 0.007).
+Both survive Bonferroni correction. Permutation test (50K reps): p=0.0017.
+TOST equivalence to 0.95 within epsilon=0.01: p=0.00008.
+
+**Status:** CONFIRMED with caveats | p = 0.0007 | **Very Strong (empirical)**
 
 ---
 
-## H4: Degradation Rate Ordering
+## TIER 3: SUPPORTING — KNOWN PHENOMENA, NEW QUANTIFICATION
 
-**Statement:** Coverage degradation rates satisfy:
-Naive(-0.233) >> Wild Boot(-0.013) > Pairs Boot(-0.009)
->= HC0(-0.007) >= HC3(-0.006) >= Boot-t(-0.003) >= AMRI(+0.007)
+These hypotheses establish context and baseline. The phenomena are known,
+but our specific quantification and framing add value.
+
+---
+
+### H1: Misspecification Causes Monotonic Coverage Degradation (Baseline)
+
+**Prior art:** The general phenomenon is well-established:
+- White (1980, 1982): Model-based variance estimator is inconsistent under misspecification
+- Buja, Brown, Berk et al. (2019): Formalized in "Models as Approximations"
+- The mechanism (CI shrinks around wrong value) is textbook material
+
+**What is new:** The specific monotonic quantification as a function of a
+continuous severity parameter delta, with a measured degradation RATE of
+-0.233 per unit delta. No prior paper reports this specific rate.
+
+**Statement:** Under model misspecification with severity delta > 0, the coverage
+of model-based (naive OLS) confidence intervals monotonically decreases as delta
+increases. The degradation rate is approximately -0.233 coverage units per unit delta.
+
+**Role in this study:** Establishes the baseline problem that motivates AMRI.
+Without H1, H4 has no context and AMRI has no motivation.
 
 **Evidence:**
-- Mann-Whitney U: Naive vs AMRI (p=0.00008), Naive vs HC3 (p=0.00008)
-- AMRI is the ONLY method with positive slope
+- Spearman rho = -0.988 between delta and naive coverage (8/8 DGP-n combos significant)
+- Fisher combined p < 10^{-10}
+- Coverage drops from 0.962 (delta=0) to 0.686 (delta=1, DGP1, n=500)
 
-**Statistical guarantee:** All Naive vs robust comparisons significant at
-p < 0.001, surviving Bonferroni correction.
+**Status:** CONFIRMED | p < 10^-10 | **Very Strong (replication + quantification)**
 
 ---
 
-## H5: Adaptive Width Mechanism
+### H5: The Sample Size Paradox for CI Coverage
+
+**Prior art:**
+- White (1982): Pseudo-true parameter theory implies CI converges to wrong value
+- Dennis, Ponciano & Taper (2019): Showed Type I error increases with n under
+  misspecification, called it "counterintuitive"
+- Freedman (2006): Warned sandwich SEs don't fix the bias problem
+
+**What is new:** The specific documentation for CI COVERAGE (not Type I error)
+with the contrasting behavior: Naive WORSENS while AMRI IMPROVES. Dennis et al.
+showed the phenomenon for hypothesis tests; we show it for confidence intervals
+and add the crucial juxtaposition with an adaptive method.
+
+**Statement:** Under fixed misspecification (delta > 0):
+- Naive coverage is a DECREASING function of n (rho = -0.643, p=0.015)
+- AMRI coverage is an INCREASING function of n (rho = +0.635, p=0.024)
+- HC3 coverage is roughly constant (rho = +0.214, p=0.635)
+
+**Interpretation:** Naive SE shrinks as 1/sqrt(n), but misspecification bias
+does NOT shrink. AMRI detects the divergence more precisely with more data.
+
+**Status:** CONFIRMED | p = 0.015 | **Strong (new framing of known phenomenon)**
+
+---
+
+### H5b: Adaptive Width Mechanism
 
 **Statement:** All methods widen under misspecification, but robust methods
 widen 3-4x faster than naive, reflecting genuine uncertainty.
@@ -300,23 +448,7 @@ widen 3-4x faster than naive, reflecting genuine uncertainty.
 - AMRI: +0.518/unit delta (p=0.011)
 - At delta=0: zero robustness tax (all ratios ~1.0)
 
-**Statistical guarantee:** Linear trend tests: all p < 0.011.
-
----
-
-## BONUS: The Sample Size Paradox
-
-**Statement:** Under misspecification, increasing n WORSENS naive coverage
-but IMPROVES AMRI coverage.
-
-**Evidence:**
-- Naive: rho(log n, coverage) = -0.643, p=0.015 (MORE DATA HURTS)
-- AMRI: rho(log n, coverage) = +0.635, p=0.024 (more data helps)
-- HC3: rho = +0.214, p=0.635 (neutral)
-
-**Interpretation:** Naive SE shrinks as 1/sqrt(n), but misspecification bias
-does NOT shrink. The CI converges to a wrong value. AMRI detects this
-divergence more precisely with more data, so coverage improves.
+**Status:** CONFIRMED | p < 0.011 | **Strong**
 
 ---
 
@@ -580,39 +712,337 @@ AMRI vs Sandwich HC3:     Cohen's d = +0.561 (MEDIUM)
 
 ---
 
-# PART VII: CONCLUSION
+# PART VII: LITERATURE CONTEXT & HONEST NOVELTY ASSESSMENT
 
-## Why AMRI Generalizes — Four-Pillar Summary
+## Prior Art: What Already Exists
 
-| Pillar | Evidence | Strength |
-|--------|----------|----------|
-| **1. Theory** | Asymptotic proof under (A1)-(A3), covers all finite-4th-moment DGPs | Mathematical |
-| **2. Real Data** | 5 realistic datasets, correct mode selection in all cases | Empirical |
-| **3. Adversarial** | 10/10 hostile DGPs survived, coverage >= 0.92 everywhere | Worst-case |
-| **4. Testing** | TOST, permutation, bootstrap, leave-one-out, Hochberg, effect sizes | Statistical |
+Extensive literature review reveals that AMRI's individual components have precedents,
+though the exact combination is new. We document this honestly.
 
-The probability that AMRI fails on well-behaved real data is negligible.
+### SE Ratio as Diagnostic (EXISTS)
+
+- **Hausman (1978)**: The foundational idea of comparing efficient vs consistent
+  estimators as a specification test. AMRI's SE ratio is a Hausman-type diagnostic
+  applied to variance estimation rather than point estimates.
+- **King & Roberts (2015)**: Proposed comparing robust vs classical SEs as a
+  misspecification diagnostic. Rule-of-thumb threshold of 1.5x. Diagnostic only,
+  not a CI-construction procedure.
+- **Chavance & Escolano (2016)**: Used SE ratio with fixed threshold [3/4, 4/3]
+  for misspecification detection in GLMMs. Diagnostic only, fixed threshold.
+
+### Pre-Test Estimators (SERIOUS THEORETICAL CONCERNS)
+
+- **Leeb & Potscher (2005, 2006)**: IMPOSSIBILITY RESULT — the conditional
+  distribution of post-model-selection estimators cannot be consistently estimated.
+  Pre-test CIs can have severely distorted coverage non-uniformly.
+- **Guggenberger (2010)**: Showed Hausman pre-test can cause asymptotic size = 1
+  (i.e., 100% Type I error) in certain specifications.
+- **Long & Ervin (2000)**: Explicitly recommended AGAINST using a screening test
+  for heteroscedasticity to decide whether to use robust SEs.
+
+### Adaptive Confidence Intervals (IMPOSSIBILITY RESULTS)
+
+- **Low (1997)**: Proved adaptive CIs cannot simultaneously achieve short length
+  when the model is correct and maintain coverage when it is not.
+- **Armstrong & Kolesar (2018, 2020)**: Extended impossibility results to regression.
+- **Luo & Gao (2024)**: Showed adaptive robust CIs must be exponentially wider
+  than non-adaptive ones under unknown contamination.
+
+### The Key Competitor: Armstrong, Kline & Sun (2025, Econometrica)
+
+This is the most directly related work. They address the EXACT same problem:
+- Same motivation: robustness-efficiency tradeoff
+- Their solution: **soft-thresholding (shrinkage)** between restricted and
+  unrestricted estimators — deliberately avoiding hard switching
+- They achieve minimax-optimal adaptation for POINT ESTIMATION
+- They explicitly note adaptive CONFIDENCE INTERVALS remain an open problem
+- Code: github.com/lsun20/MissAdapt
+
+### What IS Genuinely Novel in Our Work
+
+| Component | Novel? | Notes |
+|-----------|--------|-------|
+| tau(n) = 1 + 2/sqrt(n) formula | YES | No prior work uses this specific adaptive threshold |
+| 1.05 inflation factor | YES | No precedent for multiplicative correction on HC3 in this context |
+| Exact combined procedure | YES | The specific AMRI algorithm has not been published |
+| 8-method comprehensive comparison | YES | No prior study compares all 8 methods across 6 DGPs |
+| Unified degradation rate ranking | YES | Pairwise comparisons exist; formal unified ranking is new |
+| "Sample size paradox" formalization | PARTLY | Phenomenon known (Dennis et al. 2019), naming/framing is new |
 
 ---
 
-## Updated Hypothesis Summary Table
+# PART VIII: REVISED HYPOTHESES
 
-| # | Hypothesis | Status | p-value | Test Type | Strength |
-|---|-----------|--------|---------|-----------|----------|
-| H1 | Naive degrades | CONFIRMED | < 10^-10 | Fisher combined + Hochberg | Very Strong |
-| H2 | HC3 >= 0.93 | CONFIRMED | Simes NS | Simes intersection | Strong |
-| H3 | AMRI best-of-both | CONFIRMED | 0.0007 | Paired t + permutation + TOST | Very Strong |
-| H4 | Rate ordering | CONFIRMED | 0.00008 | Mann-Whitney + Hochberg | Very Strong |
-| H5 | Width adaptation | CONFIRMED | 0.011 | Linear trend + Hochberg | Strong |
-| Bonus | Size paradox | CONFIRMED | 0.015 | Spearman rank | Strong |
-| Gen. | AMRI generalizes | CONFIRMED | — | 4-pillar framework | Very Strong |
+Based on the literature review, we revise our hypotheses to be defensible
+and appropriately positioned relative to prior work.
+
+## H1 (REVISED): Misspecification Causes Monotonic Coverage Degradation
+
+**Prior art:** The general phenomenon is well-established (White 1980, 1982;
+Buja et al. 2019). However, the specific monotonic relationship as a function
+of a continuous severity parameter delta has not been formally documented.
+
+**Revised statement:** Under model misspecification parameterized by severity
+delta in [0,1], naive OLS coverage probability is a monotonically decreasing
+function of delta, with an average degradation rate of approximately
+-0.233 coverage units per unit delta.
+
+**Contribution type:** Formal empirical quantification of a known phenomenon.
+We provide the first systematic measurement of the degradation RATE.
+
+**Status:** CONFIRMED (p < 10^-10, Fisher combined test)
+
+---
+
+## H2 (REVISED): HC3 Maintains Near-Nominal Coverage Universally
+
+**Prior art:** HC3's good finite-sample behavior is well-documented empirically
+(Long & Ervin 2000; MacKinnon 2012). However, NO formal universal coverage
+bound has been proven. Recent large-scale analysis (Portnoy et al. 2024,
+40,571 regressions) found HC3 tends to be conservative.
+
+**Revised statement:** Sandwich HC3 confidence intervals maintain coverage
+probability >= 0.93 across all tested DGPs, severity levels, and sample sizes
+(n >= 50). This is an empirical bound, not a theoretical guarantee.
+
+**Contribution type:** First systematic empirical coverage floor for HC3
+across a comprehensive factorial design.
+
+**Status:** CONFIRMED (Simes intersection test, not rejected at alpha=0.05)
+
+---
+
+## H3 (REVISED): AMRI Achieves Practical Near-Optimality with Bounded Regret
+
+**Prior art (CRITICAL):** Armstrong, Kline & Sun (2025, Econometrica) show
+that perfect adaptation — simultaneously achieving full efficiency under correct
+specification AND full robustness under misspecification — is IMPOSSIBLE for
+confidence intervals in general (Low 1997; Armstrong & Kolesar 2018).
+
+**What we originally claimed:** "Best of both worlds" — this overclaims.
+
+**Revised statement:** AMRI (v1, hard-switching) achieves:
+(a) Width within 2.2% of naive OLS at delta=0 (near-efficiency)
+(b) Coverage within 1pp of HC3 at delta>0 (near-robustness)
+(c) The coverage-width tradeoff is Pareto-dominant over all tested alternatives
+
+This is a claim of PRACTICAL near-optimality, not theoretical oracle optimality.
+The impossibility results of Low (1997) apply to worst-case minimax settings;
+AMRI's advantage is in the AVERAGE case across realistic DGPs.
+
+**Known limitation:** At the switching boundary (R ≈ tau), coverage may be
+non-uniform (Leeb & Potscher 2005). Our adversarial testing (10/10 hostile
+DGPs survived) provides empirical evidence that the boundary effects are mild,
+but we cannot prove uniform coverage in the theoretical sense.
+
+**Contribution type:** Empirical demonstration that hard-switching can work
+well IN PRACTICE despite theoretical concerns, with comprehensive evidence
+across realistic scenarios.
+
+**Status:** CONFIRMED with caveats (paired t: p=0.0007; permutation: p=0.0017)
+
+---
+
+## H4 (UNCHANGED): Coverage Degradation Rate Ordering
+
+**Prior art:** Individual pairwise comparisons exist (Naive >> Robust is textbook).
+However, no prior study provides a unified formal ranking of degradation rates
+across 8 methods simultaneously.
+
+**Statement:** Coverage degradation rates satisfy:
+Naive(-0.233) >> Wild Boot(-0.013) > Pairs Boot(-0.009) >= HC0(-0.007)
+>= HC3(-0.006) >= Boot-t(-0.003) >= AMRI(+0.007)
+
+**Contribution type:** First unified degradation rate ranking across 8 methods.
+The finding that AMRI has a POSITIVE slope (coverage improves with severity)
+is genuinely novel.
+
+**Status:** CONFIRMED (Mann-Whitney U: p=0.00008, Hochberg-corrected)
+
+---
+
+## H5 (REVISED): The Sample Size Paradox Under Misspecification
+
+**Prior art:** The underlying phenomenon — that more data concentrates CIs
+around a wrong value — is a consequence of inconsistency (White 1982).
+Dennis, Ponciano & Taper (2019) formally showed Type I error increases with
+n under misspecification and called it "counterintuitive."
+Freedman (2006) warned that sandwich SEs do not fix the bias problem.
+
+**Revised statement:** Under fixed misspecification (delta > 0), naive OLS
+coverage is a DECREASING function of n (Spearman rho = -0.643, p=0.015),
+while AMRI coverage is an INCREASING function of n (rho = +0.635, p=0.024).
+We call this the "Sample Size Paradox" for confidence interval coverage.
+
+**Contribution type:** While the phenomenon for Type I error was documented by
+Dennis et al. (2019), the explicit documentation for CI COVERAGE with the
+contrasting behavior of adaptive methods (AMRI improves while Naive worsens)
+is new. The juxtaposition is the contribution.
+
+**Status:** CONFIRMED (Spearman: p=0.015 for Naive, p=0.024 for AMRI)
+
+---
+
+## NEW — H6: Soft-Thresholding Provides More Uniform Coverage
+
+**Motivation:** The primary theoretical criticism of AMRI v1 (hard-switching)
+is non-uniform coverage at the switching boundary (Leeb & Potscher 2005).
+AMRI v2 (soft-thresholding) addresses this by smoothly blending SEs:
+
+```
+AMRI v2: SE = (1 - w(R,n)) * SE_naive + w(R,n) * SE_HC3
+where w(R,n) = clip( (|log(R)| - log(tau_lo)) / (log(tau_hi) - log(tau_lo)), 0, 1 )
+```
+
+**Statement:** Soft-thresholding AMRI v2 provides:
+(a) More uniform coverage across the (R, n) space than hard-switching AMRI v1
+(b) Comparable average performance to AMRI v1
+(c) Smooth dependence of CI width on the diagnostic ratio
+
+**Status:** PROPOSED — requires implementation and testing.
+
+---
+
+## NEW — H7: SE Ratio Detection Power Increases Monotonically with n
+
+**Statement:** Under fixed misspecification (delta > 0), the probability that
+AMRI's diagnostic ratio R exceeds the threshold tau(n) is a monotonically
+increasing function of sample size n.
+
+**Mechanism:** As n grows:
+- The sampling variability of R shrinks as O(1/sqrt(n))
+- The threshold tau(n) = 1 + 2/sqrt(n) shrinks toward 1
+- The true R converges to a constant c != 1
+- Detection probability → 1
+
+**Status:** PROPOSED — can be verified from existing simulation data.
+
+---
+
+# PART IX: AMRI v2 — SOFT-THRESHOLDING (PROPOSED IMPROVEMENT)
+
+## Motivation
+
+The literature review identified hard-switching as AMRI v1's theoretical weakness.
+Armstrong, Kline & Sun (2025) deliberately use soft-thresholding for this reason.
+We propose AMRI v2 as an improved version that addresses these concerns.
+
+## Algorithm
+
+```
+AMRI_v2(X, Y, alpha):
+    1-4. Same as AMRI v1 (compute SE_naive, SE_HC3, ratio R, threshold tau)
+
+    5. Compute smooth blending weight:
+       w = clip( (|log(R)| - c1/sqrt(n)) / (c2/sqrt(n)), 0, 1 )
+       where c1 = 1.0 (start blending), c2 = 2.0 (full robust)
+
+    6. Blended SE:
+       SE = (1 - w) * SE_naive + w * SE_HC3
+
+    7. CI = theta_hat +/- t_{n-2, 1-alpha/2} * SE
+```
+
+## Key Properties
+
+| Property | AMRI v1 (Hard) | AMRI v2 (Soft) |
+|----------|---------------|----------------|
+| Switching | Discontinuous | Smooth |
+| Leeb-Potscher concern | Applies | Mitigated |
+| Boundary behavior | Coverage may dip | Continuous transition |
+| Implementation | Simpler | Slightly more complex |
+| Armstrong et al. alignment | No | Yes (follows their recommendation) |
+
+## Theoretical Advantage
+
+Soft-thresholding avoids the discontinuity that causes non-uniform coverage.
+At the switching boundary (R ≈ tau), AMRI v1 makes a binary decision that can
+go either way due to noise, creating a coverage "notch." AMRI v2 smoothly
+interpolates, producing a continuous coverage function.
+
+---
+
+# PART X: CONCLUSION
+
+## What This Study Contributes
+
+### Genuinely Novel Contributions
+1. **The unified 8-method degradation rate ranking** (H4) — first of its kind
+2. **The AMRI algorithm** (both v1 and v2) — specific procedure is new
+3. **Comprehensive real-data validation** on 11 actual datasets with bootstrap ground truth
+4. **Adversarial stress testing** against 10 deliberately hostile DGPs
+5. **Soft-thresholding AMRI v2** — addresses theoretical concerns from the literature
+6. **Sample Size Paradox juxtaposition** — contrasting Naive (worsens) vs AMRI (improves)
+
+### Contributions That Build on Known Results
+1. **H1** formalizes and quantifies a known phenomenon
+2. **H2** provides the first systematic empirical coverage floor for HC3
+3. **H5** names and formalizes a phenomenon partially documented by Dennis et al. (2019)
+
+### Honest Limitations
+1. **AMRI v1's hard-switching** is theoretically vulnerable (Leeb & Potscher 2005)
+2. **Perfect adaptation is impossible** for CIs in general (Low 1997)
+3. **AMRI targets pseudo-true parameters**, not causal parameters (Freedman 2006)
+4. **Simulation results are average-case**, not worst-case minimax
+5. **Simple regression only** — extension to multiple regression needs validation
+
+## Generalization — Revised Four-Pillar Summary
+
+| Pillar | Evidence | Strength | Caveat |
+|--------|----------|----------|--------|
+| **1. Theory** | Asymptotic proof under (A1)-(A3) | Mathematical | Non-uniform coverage at boundary |
+| **2. Real Data** | 11 actual datasets, correct mode in 11/11 | Empirical | Simple regression only |
+| **3. Adversarial** | 10/10 hostile DGPs, coverage >= 0.92 | Worst-case | Not exhaustive |
+| **4. Testing** | TOST, permutation, bootstrap, Hochberg | Statistical | Average-case, not minimax |
+
+## Final Hypothesis Summary Table
+
+### Tier 1 — Primary (Genuinely Novel)
+
+| # | Hypothesis | Status | p-value | Novelty |
+|---|-----------|--------|---------|---------|
+| **H4** | Unified degradation rate ordering across 8 methods | CONFIRMED | 0.00008 | First unified ranking; AMRI only method with positive slope |
+| **H6** | Soft-thresholding AMRI v2 provides uniform coverage | PROPOSED | — | Addresses Leeb-Potscher criticism; follows Armstrong et al. |
+| **H7** | SE ratio detection power increases with n | PROPOSED | — | Novel formalization of diagnostic consistency |
+
+### Tier 2 — Core (Revised Central Claims)
+
+| # | Hypothesis | Status | p-value | Key Revision |
+|---|-----------|--------|---------|--------------|
+| **H2** | HC3 empirical coverage floor >= 0.93 | CONFIRMED | Simes NS | First systematic bound (no prior formal test exists) |
+| **H3** | AMRI practical near-optimality | CONFIRMED | 0.0007 | Weakened from "best of both worlds" to "bounded regret" |
+
+### Tier 3 — Supporting (Known Phenomena, New Quantification)
+
+| # | Hypothesis | Status | p-value | Contribution |
+|---|-----------|--------|---------|--------------|
+| **H1** | Naive coverage degrades monotonically | CONFIRMED | < 10^-10 | Quantifies degradation rate (-0.233/unit delta) |
+| **H5** | Sample size paradox for CI coverage | CONFIRMED | 0.015 | New framing; juxtaposition with AMRI is novel |
+| **H5b** | Adaptive width mechanism | CONFIRMED | 0.011 | Width scaling rates across methods |
+
+---
+
+## Key References Added from Literature Review
+
+- Armstrong, Kline & Sun (2025). "Adapting to Misspecification." *Econometrica*, 93(6).
+- Low (1997). "On Nonparametric Confidence Intervals." *Annals of Statistics*.
+- Armstrong & Kolesar (2018). "Optimal Inference in Regression Models." *Econometrica*.
+- Leeb & Potscher (2005). "Model Selection and Inference." *Econometric Theory*.
+- Guggenberger (2010). "Impact of Hausman Pretest on Size." *J. of Econometrics*.
+- Dennis, Ponciano & Taper (2019). "Errors Under Model Misspecification." *Frontiers*.
+- Buja, Brown, Berk et al. (2019). "Models as Approximations I." *Statistical Science*.
+- Chavance & Escolano (2016). "Misspecification Diagnostics." *Stat Methods Med Res*.
+- King & Roberts (2015). "How Robust SEs Expose Problems." *Political Analysis*.
+- Luo & Gao (2024). "Adaptive Robust Confidence Intervals." *arXiv:2410.22647*.
+- Portnoy et al. (2024). "From Replications to Revelations." *arXiv:2411.14763*.
 
 ---
 
 ## Pending
-- Full simulation running (1440 scenarios, ~19% complete, ETA ~7 more hours)
+- Full simulation running (1440 scenarios, ~26% complete)
 - When complete: `python -u src/reanalyze_complete.py`
 - Then re-run: `python -u src/generalization_proof.py`
+- Implement and test AMRI v2 (soft-thresholding)
 
 ## All Figures
 - `AMRI_comprehensive.png` — 6-panel AMRI comparison
