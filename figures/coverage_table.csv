@@ -1,0 +1,8 @@
+dgp,DGP1_nonlinearity,DGP1_nonlinearity,DGP1_nonlinearity,DGP3_heteroscedasticity,DGP3_heteroscedasticity,DGP3_heteroscedasticity
+delta,0.0,0.5,1.0,0.0,0.5,1.0
+method,,,,,,
+AMRI,0.962,0.948,0.938,0.962,0.948,0.952
+Bayesian_Normal,0.962,0.802,0.686,0.962,0.932,0.866
+Naive_OLS,0.962,0.802,0.686,0.962,0.932,0.866
+Pairs_Bootstrap,0.956,0.94,0.92,0.956,0.942,0.938
+Sandwich_HC3,0.964,0.942,0.924,0.964,0.95,0.942
