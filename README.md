@@ -53,6 +53,44 @@ AMRI_v2(X, Y, alpha, c1=1.0, c2=2.0):
 
 **Key advantage:** The blending weight `w` transitions smoothly from 0 (fully efficient) to 1 (fully robust), producing a **Lipschitz-continuous** mapping from DGP parameters to coverage.
 
+## Interactive Dashboard
+
+AMRI includes a fully interactive web dashboard built with Plotly Dash for exploring simulation results, running custom simulations, and visualizing inference outcomes across all methods.
+
+### Launch
+
+```bash
+pip install dash dash-bootstrap-components dash-bootstrap-templates plotly "dash[diskcache]"
+cd dashboard && python app.py
+# Open http://localhost:8050
+```
+
+### Simulation Runner — Inference Results Visualization
+
+Configure a DGP, set misspecification severity, and run all 10 inference methods on the same dataset. The **forest plot** shows each method's confidence interval, point estimate, and whether it covers the true parameter.
+
+![Simulation Runner](dashboard/screenshots/simulation_runner.png)
+
+![Forest Plot & Inference Results](dashboard/screenshots/simulation_forest.png)
+
+### Overview & Pre-Computed Results
+
+Browse 895 pre-computed scenarios with interactive filters by DGP, method, sample size, and delta.
+
+![Overview](dashboard/screenshots/overview.png)
+
+![Results Explorer](dashboard/screenshots/results_explorer.png)
+
+### Real Data Validation & Method Comparison
+
+Explore AMRI performance on 61 real-world datasets and see head-to-head comparisons with AKS (2025, Econometrica).
+
+![Real Data](dashboard/screenshots/real_data.png)
+
+![Method Comparison](dashboard/screenshots/comparison.png)
+
+---
+
 ## Key Results
 
 ### AMRI v1 vs v2 Head-to-Head (360 scenarios, 2000 reps each)
@@ -125,32 +163,29 @@ See `src/theoretical_guarantees.py` for full proof sketches and Monte Carlo veri
 ├── EXPERIMENTAL_DESIGN.md       # Experimental design specification
 ├── Reference/
 │   └── REFERENCES.md            # Complete bibliography (30+ references)
+├── amri/                        # Core AMRI package
+│   ├── core.py                  # amri_v1(), amri_v2(), adaptive_ci()
+│   ├── estimators.py            # OLS, Logistic, Poisson estimators
+│   ├── diagnostics.py           # SE ratio, blending weight, diagnostics
+│   └── tests/                   # Unit tests
 ├── src/
-│   ├── simulation.py            # Core simulation engine (DGPs + 9 methods)
-│   ├── run_vectorized_v2.py     # Full vectorized Monte Carlo (1440 scenarios, 9 methods)
-│   ├── run_amri_v2_standalone.py# AMRI v1 vs v2 head-to-head comparison
-│   ├── theoretical_guarantees.py# 3 theorems with proof sketches + numerical verification
-│   ├── run_full_vectorized.py   # Vectorized simulation (earlier version)
-│   ├── run_optimized.py         # Optimized simulation runner
-│   ├── run_fast.py              # Fast pilot simulation
-│   ├── analyze_and_plot.py      # Analysis and visualization pipeline
-│   ├── deep_analysis.py         # Deep 6-panel analysis figures
-│   ├── amri_figure.py           # AMRI comprehensive comparison figure
-│   ├── statistical_guarantees.py# 7 formal statistical tests
-│   ├── generalization_proof.py  # 4-pillar generalization framework
-│   ├── real_data_validation.py  # Real-world dataset validation (11 datasets)
-│   └── reanalyze_complete.py    # One-click reanalysis script
-├── results/
-│   ├── results_pilot.csv        # Pilot results (60 scenarios)
-│   ├── results_intermediate.csv # Intermediate results (240 scenarios)
-│   ├── results_amri_v2.csv      # AMRI v2 head-to-head results (360 scenarios)
-│   └── results_full.csv         # Full simulation results (when complete)
-└── figures/
-    ├── AMRI_comprehensive.png   # 6-panel AMRI comparison (main figure)
-    ├── FINAL_1 through FINAL_6  # Publication-ready figures
-    ├── A through F              # Deep analysis panels
-    ├── fig1 through fig7        # Initial pilot figures
-    └── *.csv                    # Summary statistics tables
+│   ├── simulation.py            # Core simulation engine (6 DGPs × 10 methods)
+│   ├── competitor_comparison.py # Head-to-head: 10 methods including AKS (2025)
+│   ├── formal_theory.py         # Theorem 1-3 verification (B=3000)
+│   ├── minimax_theory.py        # Minimax lower bounds & oracle efficiency
+│   ├── real_data_validation.py  # 61 real-world datasets (50K bootstrap)
+│   ├── statistical_guarantees.py# 9 formal hypothesis tests
+│   ├── publication_figures.py   # 8 publication-quality figures
+│   └── ...                      # Additional analysis scripts
+├── dashboard/                   # Interactive Plotly Dash web app
+│   ├── app.py                   # Main entry point (http://localhost:8050)
+│   ├── pages/                   # 6 pages: overview, simulation, results, etc.
+│   ├── components/              # Reusable plots, cards, navbar
+│   ├── engine/                  # Simulation engine + data loader
+│   └── screenshots/             # Dashboard screenshots
+├── results/                     # Pre-computed CSV results (895+ scenarios)
+├── figures/                     # Publication-ready figures (PNG + PDF)
+└── paper/                       # LaTeX manuscript
 ```
 
 ## Reproducing Results

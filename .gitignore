@@ -3,6 +3,10 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+# Dashboard cache
+dashboard/.cache/
+.claude/
+
 # C extensions
 *.so
 
