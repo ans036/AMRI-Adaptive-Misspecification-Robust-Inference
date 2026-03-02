@@ -58,13 +58,13 @@ DGP_LABELS = {
     'DGP6_clustering': 'DGP6: Clustering',
 }
 
-FIGURES_DIR = Path("c:/Users/anish/OneDrive/Desktop/Novel Research/figures")
+FIGURES_DIR = Path(__file__).resolve().parent.parent / "figures"
 FIGURES_DIR.mkdir(exist_ok=True)
 
 
 def load_results():
     """Load all simulation result files."""
-    results_dir = Path("c:/Users/anish/OneDrive/Desktop/Novel Research/results")
+    results_dir = Path(__file__).resolve().parent.parent / "results"
     dfs = []
     for f in results_dir.glob("results_*.csv"):
         df = pd.read_csv(f)

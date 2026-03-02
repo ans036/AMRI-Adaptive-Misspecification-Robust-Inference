@@ -7,6 +7,7 @@ import sys
 import numpy as np
 import pandas as pd
 from scipy import stats
+from pathlib import Path
 import statsmodels.api as sm
 import warnings
 import time
@@ -344,12 +345,12 @@ if __name__ == '__main__':
         # Save intermediate results every 200 scenarios
         if (i + 1) % 200 == 0:
             pd.DataFrame(results).to_csv(
-                "c:/Users/anish/OneDrive/Desktop/Novel Research/results/results_full_intermediate.csv",
+                str(Path(__file__).resolve().parent.parent / "results" / "results_full_intermediate.csv"),
                 index=False)
             log(f"  >> Intermediate save: {len(results)} scenarios")
 
     df = pd.DataFrame(results)
-    outpath = "c:/Users/anish/OneDrive/Desktop/Novel Research/results/results_full.csv"
+    outpath = str(Path(__file__).resolve().parent.parent / "results" / "results_full.csv")
     df.to_csv(outpath, index=False)
 
     total_time = time.time() - t0

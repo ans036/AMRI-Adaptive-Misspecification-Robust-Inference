@@ -5,6 +5,7 @@ Targets ~30-45 min total runtime.
 import numpy as np
 import pandas as pd
 from scipy import stats
+from pathlib import Path
 import statsmodels.api as sm
 from sklearn.linear_model import LinearRegression
 import warnings
@@ -276,7 +277,7 @@ if __name__ == '__main__':
                   f"{te-ts:.1f}s | ETA: {eta/60:.0f}min")
 
     df = pd.DataFrame(results)
-    outpath = "c:/Users/anish/OneDrive/Desktop/Novel Research/results/results_full.csv"
+    outpath = str(Path(__file__).resolve().parent.parent / "results" / "results_full.csv")
     df.to_csv(outpath, index=False)
 
     total_time = time.time() - t0

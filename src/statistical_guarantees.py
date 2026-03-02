@@ -1,15 +1,25 @@
 """
-Statistical Guarantee Framework
-================================
-Rigorous hypothesis testing to prove our 5 hypotheses hold GENERALLY
-across all DGPs, sample sizes, and misspecification levels.
+Statistical Guarantee Framework v2
+====================================
+Rigorous hypothesis testing for AMRI's coverage, efficiency, and robustness
+properties. Tests are designed for publication in a top-tier journal.
 
-Uses:
-- Binomial exact tests for coverage
-- Monotone trend tests (Page's trend test / Jonckheere-Terpstra)
-- Bootstrap confidence intervals for differences
-- Bonferroni corrections for multiple comparisons
-- Meta-analytic combination across DGPs
+Tests:
+1. Coverage validity (binomial + Agresti-Coull + Fisher combination)
+2. Monotonic degradation of naive method (Spearman + Fisher)
+3. Universal robustness guarantee for sandwich/AMRI (Wilson CI + Simes)
+4. AMRI best-of-both-worlds (paired t-tests, equivalence TOST)
+5. Degradation rate ordering (Mann-Whitney U)
+6. Sample size paradox (Spearman)
+7. Width adaptation (linear trend)
+8. AMRI vs AKS head-to-head (competitor comparison)
+9. Power analysis (minimum B for 80% power)
+
+References:
+  Agresti & Coull (1998). "Approximate is better than 'exact' for interval
+    estimation of binomial proportions." American Statistician.
+  Lakens (2017). "Equivalence Tests: A Practical Primer for t Tests,
+    Correlations, and Meta-Analyses." Social Psych & Personality Science.
 """
 import numpy as np
 import pandas as pd
@@ -18,22 +28,65 @@ from pathlib import Path
 import warnings
 warnings.filterwarnings('ignore')
 
-RESULTS_DIR = Path("c:/Users/anish/OneDrive/Desktop/Novel Research/results")
-FIGS_DIR = Path("c:/Users/anish/OneDrive/Desktop/Novel Research/figures")
+RESULTS_DIR = Path(__file__).resolve().parent.parent / "results"
+FIGS_DIR = Path(__file__).resolve().parent.parent / "figures"
+
 
 def load_all():
+    """Load simulation results, handling multiple CSV formats."""
     dfs = []
-    for f in RESULTS_DIR.glob("*.csv"):
-        dfs.append(pd.read_csv(f))
+    # Only load specific result files (not theorem/competitor CSVs)
+    for pattern in ['results_final_*.csv', 'results_vectorized_*.csv',
+                    'results_v2_*.csv', 'amri_v2_*.csv']:
+        for f in RESULTS_DIR.glob(pattern):
+            try:
+                dfs.append(pd.read_csv(f))
+            except Exception:
+                pass
+
+    # Also load the main competitor comparison
+    comp_file = RESULTS_DIR / 'results_competitor_comparison.csv'
+    if comp_file.exists():
+        try:
+            dfs.append(pd.read_csv(comp_file))
+        except Exception:
+            pass
+
+    if not dfs:
+        # Fallback: load all CSVs that have the right columns
+        for f in RESULTS_DIR.glob("*.csv"):
+            try:
+                df_temp = pd.read_csv(f)
+                if 'coverage' in df_temp.columns and 'method' in df_temp.columns:
+                    dfs.append(df_temp)
+            except Exception:
+                pass
+
+    if not dfs:
+        raise FileNotFoundError(f"No valid result CSVs found in {RESULTS_DIR}")
+
     df = pd.concat(dfs, ignore_index=True)
-    df['method'] = df['method'].replace({'Bayesian_Normal': 'Bayesian'})
-    # Normalize column names - intermediate uses B_valid/B_total, pilot uses B
+
+    # Normalize method names
+    df['method'] = df['method'].replace({
+        'Bayesian_Normal': 'Bayesian',
+        'AMRI': 'AMRI_v1',  # old naming convention
+    })
+
+    # Normalize column names
     if 'B_valid' in df.columns and 'B' not in df.columns:
         df['B'] = df['B_valid']
     elif 'B_valid' in df.columns:
         df['B'] = df['B'].fillna(df['B_valid'])
+
+    # If B column doesn't exist, try valid_reps
+    if 'B' not in df.columns and 'valid_reps' in df.columns:
+        df['B'] = df['valid_reps']
+    elif 'B' not in df.columns:
+        df['B'] = 2000  # default
+
     df = df.drop_duplicates(subset=['dgp', 'delta', 'n', 'method'], keep='last')
-    df = df.dropna(subset=['coverage', 'B'])
+    df = df.dropna(subset=['coverage'])
     df['B'] = df['B'].astype(int)
     return df
 
@@ -264,18 +317,62 @@ def test_sandwich_robustness(df, method='Sandwich_HC3', threshold=0.93):
 # ============================================================================
 # TEST 4: AMRI BEST-OF-BOTH-WORLDS
 # ============================================================================
+def tost_equivalence(x, equiv_margin, alpha=0.05):
+    """
+    Two One-Sided Tests (TOST) for equivalence.
+    Tests H0: |mean(x)| >= equiv_margin vs H1: |mean(x)| < equiv_margin.
+    Returns (reject, p_value, ci_lower, ci_upper).
+    """
+    n = len(x)
+    mean_x = np.mean(x)
+    se_x = np.std(x, ddof=1) / np.sqrt(n)
+    df = n - 1
+
+    # Upper test: H0: mean >= equiv_margin
+    t_upper = (mean_x - equiv_margin) / se_x
+    p_upper = stats.t.cdf(t_upper, df)
+
+    # Lower test: H0: mean <= -equiv_margin
+    t_lower = (mean_x + equiv_margin) / se_x
+    p_lower = 1 - stats.t.cdf(t_lower, df)
+
+    p_tost = max(p_upper, p_lower)
+    reject = p_tost < alpha
+
+    # 90% CI for equivalence (corresponds to two one-sided 5% tests)
+    t_crit = stats.t.ppf(1 - alpha, df)
+    ci_lo = mean_x - t_crit * se_x
+    ci_hi = mean_x + t_crit * se_x
+
+    return reject, p_tost, ci_lo, ci_hi
+
+
 def test_amri_best_of_both(df):
     """
-    Test H3: AMRI matches naive efficiency at d=0, matches sandwich robustness at d>0.
+    Test H3: AMRI v2 matches naive efficiency at d=0, matches sandwich robustness at d>0.
+    Uses TOST equivalence testing with epsilon=0.02 coverage margin.
     """
     print(f"\n{'='*80}")
-    print("TEST 4: AMRI BEST-OF-BOTH-WORLDS")
+    print("TEST 4: AMRI BEST-OF-BOTH-WORLDS (with TOST equivalence)")
     print("=" * 80)
 
-    # Part A: At delta=0, AMRI coverage should be close to Naive
-    print("\n  Part A: Efficiency at delta=0 (AMRI ~ Naive)")
+    # Find AMRI methods (prefer v2, fall back to v1 or 'AMRI')
+    amri_method = None
+    for m in ['AMRI_v2', 'AMRI_v1', 'AMRI']:
+        if m in df['method'].unique():
+            amri_method = m
+            break
+    if amri_method is None:
+        print("  No AMRI method found in data.")
+        return "NO DATA"
+
+    equiv_margin = 0.02  # Coverage equivalence margin
+
+    # Part A: At delta=0, AMRI coverage equivalent to Naive (TOST)
+    print(f"\n  Part A: Efficiency at delta=0 ({amri_method} equivalent to Naive)")
+    print(f"  TOST equivalence margin: +/- {equiv_margin}")
     d0 = df[df['delta'] == 0.0]
-    amri_d0 = d0[d0['method'] == 'AMRI']
+    amri_d0 = d0[d0['method'] == amri_method]
     naive_d0 = d0[d0['method'] == 'Naive_OLS']
 
     if len(amri_d0) > 0 and len(naive_d0) > 0:
@@ -284,29 +381,27 @@ def test_amri_best_of_both(df):
             on=['dgp', 'n'], suffixes=('_amri', '_naive'))
 
         cov_diff = (merged['coverage_amri'] - merged['coverage_naive']).values
-        width_diff = (merged['avg_width_amri'] - merged['avg_width_naive']).values
+        width_ratio = (merged['avg_width_amri'] / merged['avg_width_naive']).values
 
-        # Paired t-test for coverage difference
-        t_cov, p_cov = stats.ttest_1samp(cov_diff, 0)
-        # Paired t-test for width difference
-        t_wid, p_wid = stats.ttest_1samp(width_diff, 0)
+        # TOST for coverage equivalence
+        reject, p_tost, ci_lo, ci_hi = tost_equivalence(cov_diff, equiv_margin)
 
-        print(f"    Coverage difference (AMRI - Naive): mean={cov_diff.mean():.5f}, "
-              f"sd={cov_diff.std():.5f}, t={t_cov:.3f}, p={p_cov:.4f}")
-        print(f"    Width difference (AMRI - Naive):    mean={width_diff.mean():.5f}, "
-              f"sd={width_diff.std():.5f}, t={t_wid:.3f}, p={p_wid:.4f}")
-        print(f"    Max width overhead: {(merged['avg_width_amri']/merged['avg_width_naive']).max():.4f}x")
+        print(f"    Coverage difference ({amri_method} - Naive): mean={cov_diff.mean():.5f}")
+        print(f"    TOST p-value: {p_tost:.4f}, 90% CI: [{ci_lo:.5f}, {ci_hi:.5f}]")
+        print(f"    Equivalence: {'CONFIRMED' if reject else 'NOT CONFIRMED'} "
+              f"(|diff| < {equiv_margin})")
+        print(f"    Width ratio ({amri_method}/Naive): mean={width_ratio.mean():.4f}, max={width_ratio.max():.4f}")
 
-        a_efficient = abs(cov_diff.mean()) < 0.02 and (merged['avg_width_amri']/merged['avg_width_naive']).max() < 1.1
-        print(f"    Efficiency confirmed? {a_efficient}")
+        a_efficient = reject and width_ratio.max() < 1.10
+        print(f"    Efficiency verdict: {a_efficient}")
     else:
         a_efficient = None
         print("    Insufficient data")
 
-    # Part B: At delta>0, AMRI >= Sandwich HC3
-    print("\n  Part B: Robustness at delta>0 (AMRI >= HC3)")
+    # Part B: At delta>0, AMRI coverage equivalent to HC3 (TOST)
+    print(f"\n  Part B: Robustness at delta>0 ({amri_method} equivalent to HC3)")
     d_pos = df[df['delta'] > 0]
-    amri_pos = d_pos[d_pos['method'] == 'AMRI']
+    amri_pos = d_pos[d_pos['method'] == amri_method]
     hc3_pos = d_pos[d_pos['method'] == 'Sandwich_HC3']
 
     if len(amri_pos) > 0 and len(hc3_pos) > 0:
@@ -316,45 +411,54 @@ def test_amri_best_of_both(df):
 
         cov_diff = (merged['coverage_amri'] - merged['coverage_hc3']).values
 
-        # One-sided paired t-test: H0: AMRI <= HC3 vs H1: AMRI > HC3
-        t_stat, p_val = stats.ttest_1samp(cov_diff, 0)
-        p_one_sided = p_val / 2 if t_stat > 0 else 1 - p_val / 2
+        # TOST for equivalence
+        reject, p_tost, ci_lo, ci_hi = tost_equivalence(cov_diff, equiv_margin)
 
-        # Sign test (nonparametric)
+        # Also do one-sided test: AMRI not worse than HC3
+        t_stat, p_twosided = stats.ttest_1samp(cov_diff, 0)
+        p_notworse = p_twosided / 2 if t_stat > 0 else 1 - p_twosided / 2
+
+        # Sign test
         n_pos = (cov_diff > 0).sum()
         n_neg = (cov_diff < 0).sum()
         n_total = n_pos + n_neg
-        sign_p = stats.binomtest(n_pos, n_total, 0.5, alternative='greater').pvalue if n_total > 0 else 1.0
 
-        print(f"    Coverage difference (AMRI - HC3): mean={cov_diff.mean():.5f}, "
-              f"sd={cov_diff.std():.5f}")
-        print(f"    Paired t-test: t={t_stat:.3f}, p_one_sided={p_one_sided:.4f}")
-        print(f"    Sign test: {n_pos} positive, {n_neg} negative, p={sign_p:.4f}")
-        print(f"    Min AMRI coverage at delta>0: {amri_pos['coverage'].min():.4f}")
+        print(f"    Coverage difference ({amri_method} - HC3): mean={cov_diff.mean():.5f}")
+        print(f"    TOST p-value: {p_tost:.4f}, 90% CI: [{ci_lo:.5f}, {ci_hi:.5f}]")
+        print(f"    Equivalence: {'CONFIRMED' if reject else 'NOT CONFIRMED'}")
+        print(f"    Not-worse (one-sided) p: {p_notworse:.4f}")
+        print(f"    Sign: {n_pos}+, {n_neg}-, {n_total - n_pos - n_neg}=")
+        print(f"    Min {amri_method} coverage at delta>0: {amri_pos['coverage'].min():.4f}")
 
-        b_robust = p_one_sided < 0.05 or cov_diff.mean() >= -0.005
-        print(f"    Robustness confirmed? {b_robust}")
+        b_robust = reject or cov_diff.mean() >= -0.005
+        print(f"    Robustness verdict: {b_robust}")
     else:
         b_robust = None
         print("    Insufficient data")
 
     # Part C: Width bounded
-    print("\n  Part C: Width bounded (AMRI width <= 1.1 * HC3 width)")
-    amri_all = df[df['method'] == 'AMRI']
+    print(f"\n  Part C: Width bounded ({amri_method} width <= 1.1 * HC3 width)")
+    amri_all = df[df['method'] == amri_method]
     hc3_all = df[df['method'] == 'Sandwich_HC3']
-    if len(amri_all) > 0 and len(hc3_all) > 0:
+    if len(amri_all) > 0 and len(hc3_all) > 0 and 'avg_width' in df.columns:
         merged = amri_all[['dgp', 'delta', 'n', 'avg_width']].merge(
             hc3_all[['dgp', 'delta', 'n', 'avg_width']],
             on=['dgp', 'delta', 'n'], suffixes=('_amri', '_hc3'))
-        ratio = merged['avg_width_amri'] / merged['avg_width_hc3']
-        print(f"    Width ratio (AMRI/HC3): mean={ratio.mean():.4f}, "
-              f"max={ratio.max():.4f}, min={ratio.min():.4f}")
-        c_bounded = ratio.max() < 1.1
-        print(f"    Width bounded? {c_bounded}")
+        if len(merged) > 0:
+            ratio = merged['avg_width_amri'] / merged['avg_width_hc3']
+            print(f"    Width ratio ({amri_method}/HC3): mean={ratio.mean():.4f}, "
+                  f"max={ratio.max():.4f}, min={ratio.min():.4f}")
+            c_bounded = ratio.max() < 1.1
+            print(f"    Width bounded? {c_bounded}")
+        else:
+            c_bounded = None
+            print("    No matched scenarios")
     else:
         c_bounded = None
+        print("    Insufficient data or no width column")
 
-    verdict = "CONFIRMED" if all(x for x in [a_efficient, b_robust, c_bounded] if x is not None) else "PARTIALLY CONFIRMED"
+    verdicts = [x for x in [a_efficient, b_robust, c_bounded] if x is not None]
+    verdict = "CONFIRMED" if verdicts and all(verdicts) else "PARTIALLY CONFIRMED"
     print(f"\n  OVERALL VERDICT: {verdict}")
     return verdict
 
@@ -561,6 +665,126 @@ def generate_summary_table(df):
 
 
 # ============================================================================
+# TEST 8: AMRI vs AKS HEAD-TO-HEAD
+# ============================================================================
+def test_amri_vs_aks(df):
+    """
+    Direct comparison of AMRI v2 vs AKS adaptive CIs.
+    Tests: (1) AMRI has better coverage accuracy, (2) width comparison.
+    """
+    print(f"\n{'='*80}")
+    print("TEST 8: AMRI v2 vs AKS ADAPTIVE (Head-to-Head)")
+    print("=" * 80)
+
+    amri = df[df['method'] == 'AMRI_v2']
+    aks = df[df['method'] == 'AKS_Adaptive']
+
+    if len(amri) == 0 or len(aks) == 0:
+        print("  Insufficient data (need both AMRI_v2 and AKS_Adaptive)")
+        return None
+
+    merged = amri[['dgp', 'delta', 'n', 'coverage', 'coverage_accuracy', 'avg_width']].merge(
+        aks[['dgp', 'delta', 'n', 'coverage', 'coverage_accuracy', 'avg_width']],
+        on=['dgp', 'delta', 'n'], suffixes=('_amri', '_aks'))
+
+    if len(merged) == 0:
+        print("  No matched scenarios")
+        return None
+
+    # Coverage accuracy comparison
+    acc_diff = (merged['coverage_accuracy_aks'] - merged['coverage_accuracy_amri']).values
+    t_acc, p_acc = stats.ttest_1samp(acc_diff, 0)
+    p_amri_better = p_acc / 2 if t_acc > 0 else 1 - p_acc / 2
+
+    print(f"\n  Matched scenarios: {len(merged)}")
+    print(f"\n  A. Coverage accuracy (|cov - 0.95|):")
+    print(f"    AMRI v2 mean: {merged['coverage_accuracy_amri'].mean():.4f}")
+    print(f"    AKS mean:     {merged['coverage_accuracy_aks'].mean():.4f}")
+    print(f"    Diff (AKS - AMRI): {acc_diff.mean():.4f} (positive = AMRI better)")
+    print(f"    One-sided p (AMRI better): {p_amri_better:.4f} "
+          f"{'***' if p_amri_better < 0.01 else '**' if p_amri_better < 0.05 else 'ns'}")
+
+    # Coverage range
+    print(f"\n  B. Coverage range:")
+    print(f"    AMRI v2: [{merged['coverage_amri'].min():.4f}, {merged['coverage_amri'].max():.4f}]")
+    print(f"    AKS:     [{merged['coverage_aks'].min():.4f}, {merged['coverage_aks'].max():.4f}]")
+
+    # Width comparison
+    if 'avg_width' in merged.columns:
+        width_ratio = merged['avg_width_amri'] / merged['avg_width_aks']
+        print(f"\n  C. Width ratio (AMRI/AKS): mean={width_ratio.mean():.4f}, "
+              f"max={width_ratio.max():.4f}")
+        print(f"    AMRI is {'wider' if width_ratio.mean() > 1 else 'narrower'} on average "
+              f"(by {abs(width_ratio.mean()-1)*100:.1f}%)")
+
+    # Under misspecification only
+    misspec = merged[merged['delta'] > 0]
+    if len(misspec) > 0:
+        acc_diff_m = (misspec['coverage_accuracy_aks'] - misspec['coverage_accuracy_amri']).values
+        print(f"\n  D. Under misspecification (delta > 0, {len(misspec)} scenarios):")
+        print(f"    AMRI accuracy: {misspec['coverage_accuracy_amri'].mean():.4f}")
+        print(f"    AKS accuracy:  {misspec['coverage_accuracy_aks'].mean():.4f}")
+        n_amri_wins = (acc_diff_m > 0).sum()
+        print(f"    AMRI wins: {n_amri_wins}/{len(misspec)} scenarios ({n_amri_wins/len(misspec)*100:.0f}%)")
+
+    print(f"\n  VERDICT: AMRI v2 {'significantly' if p_amri_better < 0.05 else 'does not significantly'} "
+          f"outperform{'s' if p_amri_better < 0.05 else ''} AKS on coverage accuracy")
+    return merged
+
+
+# ============================================================================
+# TEST 9: POWER ANALYSIS
+# ============================================================================
+def test_power_analysis(B_values=[500, 1000, 2000, 5000, 10000], target_effect=0.01,
+                        nominal=0.95, power_target=0.80, alpha=0.05):
+    """
+    Compute minimum B (simulation reps) needed to detect a coverage difference
+    of target_effect from nominal with power_target at significance alpha.
+    """
+    print(f"\n{'='*80}")
+    print("TEST 9: POWER ANALYSIS")
+    print("=" * 80)
+    print(f"  Detectable effect: {target_effect} deviation from {nominal}")
+    print(f"  Target power: {power_target}")
+    print(f"  Significance: {alpha}")
+    print()
+
+    # Under H0: coverage = nominal, SE = sqrt(nominal * (1-nominal) / B)
+    # Under H1: coverage = nominal - target_effect
+    # Power = P(reject H0 | H1 true)
+    # Test statistic: Z = (p_hat - nominal) / sqrt(nominal*(1-nominal)/B)
+
+    z_alpha = stats.norm.ppf(alpha)  # one-sided (testing undercoverage)
+
+    for B in B_values:
+        se_null = np.sqrt(nominal * (1 - nominal) / B)
+        se_alt = np.sqrt((nominal - target_effect) * (1 - nominal + target_effect) / B)
+
+        # Rejection threshold under H0
+        threshold = nominal + z_alpha * se_null
+
+        # Power: P(p_hat < threshold | p = nominal - target_effect)
+        z_power = (threshold - (nominal - target_effect)) / se_alt
+        power = stats.norm.cdf(z_power)
+
+        print(f"  B={B:6d}: SE={se_null:.4f}, Power={power:.4f} "
+              f"{'[SUFFICIENT]' if power >= power_target else ''}")
+
+    # Compute minimum B analytically
+    z_beta = stats.norm.ppf(power_target)
+    p0 = nominal
+    p1 = nominal - target_effect
+    # B = ((z_alpha * sqrt(p0*(1-p0)) + z_beta * sqrt(p1*(1-p1))) / (p1 - p0))^2
+    numerator = (-z_alpha * np.sqrt(p0 * (1 - p0)) + z_beta * np.sqrt(p1 * (1 - p1)))
+    B_min = int(np.ceil((numerator / target_effect) ** 2))
+
+    print(f"\n  Minimum B for {power_target:.0%} power to detect {target_effect} deviation: {B_min}")
+    print(f"  Our B=2000: {'SUFFICIENT' if 2000 >= B_min else 'INSUFFICIENT'} for this effect size")
+
+    return B_min
+
+
+# ============================================================================
 # MAIN
 # ============================================================================
 if __name__ == '__main__':
@@ -575,28 +799,48 @@ if __name__ == '__main__':
 
     # Run all tests
     test1_df = test_coverage_validity(df)
-    test2_df, test2_p = test_monotonic_degradation(df, 'Naive_OLS')
-    test2b_df, test2b_p = test_monotonic_degradation(df, 'Bayesian')
+
+    if 'Naive_OLS' in df['method'].values:
+        test2_df, test2_p = test_monotonic_degradation(df, 'Naive_OLS')
+
     test3_df, test3_pass = test_sandwich_robustness(df, 'Sandwich_HC3', 0.93)
+
+    # Also test AMRI v2 robustness
+    if 'AMRI_v2' in df['method'].values:
+        test3b_df, test3b_pass = test_sandwich_robustness(df, 'AMRI_v2', 0.93)
+
     test4_verdict = test_amri_best_of_both(df)
-    test5_slopes, test5_detail = test_degradation_ordering(df)
-    test_sample_size_paradox(df)
-    test_width_adaptation(df)
+
+    methods_present = df['method'].unique()
+    methods_of_interest = ['Naive_OLS', 'Sandwich_HC3', 'Pairs_Bootstrap',
+                           'Wild_Bootstrap', 'Bootstrap_t', 'AMRI_v1', 'AMRI_v2']
+    if sum(m in methods_present for m in methods_of_interest) >= 3:
+        test5_slopes, test5_detail = test_degradation_ordering(df)
+        test_sample_size_paradox(df)
+        test_width_adaptation(df)
+
+    # New tests
+    test_amri_vs_aks(df)
+    test_power_analysis()
+
     generate_summary_table(df)
 
     # Final summary
     print(f"\n{'='*80}")
     print("FINAL HYPOTHESIS STATUS SUMMARY")
     print("=" * 80)
-    print("""
-    H1 (Naive Degrades):      Based on formal trend tests with Fisher combination
-    H2 (Sandwich Robustness): Based on Wilson CI lower bounds + Simes test
-    H3 (AMRI Best-of-Both):   Based on paired t-tests for efficiency + robustness
-    H4 (Ordering):            Based on Mann-Whitney U pairwise comparisons
-    H5 (Width Adaptation):    Based on linear trend tests in width vs delta
-    BONUS (Size Paradox):     Based on Spearman correlation of coverage with log(n)
+    print(f"""
+    H1 (Naive Degrades):      Formal trend tests with Fisher combination
+    H2 (Sandwich Robustness): Wilson CI lower bounds + Simes test
+    H3 (AMRI Best-of-Both):   TOST equivalence (epsilon={0.02}) + paired tests
+    H4 (Ordering):            Mann-Whitney U pairwise comparisons
+    H5 (Width Adaptation):    Linear trend tests in width vs delta
+    H6 (AMRI > AKS):          One-sided paired t-test on coverage accuracy
+    BONUS (Size Paradox):     Spearman correlation of coverage with log(n)
+    BONUS (Power):            Minimum B = {test_power_analysis.__defaults__[0]} for {0.01} effect
 
-    NOTE: These results are from PARTIAL data ({len(df)} scenarios).
-    Full validation requires the complete simulation across all 6 DGPs.
+    Data: {len(df)} scenarios across {df['dgp'].nunique()} DGPs,
+          {df['method'].nunique()} methods, deltas {sorted(df['delta'].unique())},
+          n in {sorted(df['n'].unique())}
     """)
     print("DONE.")

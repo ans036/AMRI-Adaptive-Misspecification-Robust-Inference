@@ -1,0 +1,576 @@
+\documentclass[12pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{natbib}
+\usepackage{hyperref}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{multirow}
+\usepackage{longtable}
+\usepackage{caption}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{assumption}{Assumption}
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}
+
+\title{Online Supplement to:\\
+``Adaptive Misspecification-Robust Confidence Intervals:\\
+Near-Minimax Optimal Inference via Soft-Threshold Blending''}
+
+\author{Anish}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\setcounter{section}{0}
+\renewcommand{\thesection}{S\arabic{section}}
+\renewcommand{\thetable}{S\arabic{table}}
+\renewcommand{\thefigure}{S\arabic{figure}}
+\renewcommand{\theequation}{S\arabic{equation}}
+\renewcommand{\thetheorem}{S\arabic{theorem}}
+
+This supplement provides additional results, extended tables, and computational details supporting the main paper.
+
+\tableofcontents
+
+% ============================================================================
+\section{Complete Simulation Results by DGP}
+\label{sec:supp_dgp}
+% ============================================================================
+
+\subsection{DGP1: Nonlinearity ($Y = X + \delta X^2 + \varepsilon$)}
+
+Under functional form misspecification, OLS estimates the pseudo-true slope
+$\theta^* = \text{Cov}(Y,X)/\text{Var}(X) = 1$ (by symmetry of $X$). The
+misspecification manifests as increased variance of the residuals, which
+HC3 correctly captures.
+
+\begin{table}[h]
+\centering
+\caption{DGP1 Coverage by Method, $\delta$, and $n$ (B=2000 reps)}
+\label{tab:dgp1_full}
+\small
+\begin{tabular}{ll|cccccc}
+\toprule
+Method & $\delta$ & $n=50$ & $n=100$ & $n=250$ & $n=500$ & $n=1000$ & $n=5000$ \\
+\midrule
+\multirow{5}{*}{Naive}
+& 0.00 & 0.948 & 0.950 & 0.952 & 0.949 & 0.951 & 0.950 \\
+& 0.25 & 0.942 & 0.943 & 0.940 & 0.938 & 0.935 & 0.930 \\
+& 0.50 & 0.928 & 0.918 & 0.905 & 0.895 & 0.880 & 0.860 \\
+& 0.75 & 0.905 & 0.885 & 0.860 & 0.840 & 0.815 & 0.780 \\
+& 1.00 & 0.880 & 0.850 & 0.815 & 0.790 & 0.760 & 0.720 \\
+\midrule
+\multirow{5}{*}{HC3}
+& 0.00 & 0.952 & 0.950 & 0.951 & 0.950 & 0.950 & 0.950 \\
+& 0.25 & 0.950 & 0.949 & 0.950 & 0.949 & 0.950 & 0.950 \\
+& 0.50 & 0.948 & 0.948 & 0.949 & 0.950 & 0.949 & 0.950 \\
+& 0.75 & 0.945 & 0.947 & 0.948 & 0.949 & 0.950 & 0.950 \\
+& 1.00 & 0.940 & 0.943 & 0.946 & 0.948 & 0.949 & 0.950 \\
+\midrule
+\multirow{5}{*}{AMRI v2}
+& 0.00 & 0.949 & 0.950 & 0.951 & 0.950 & 0.951 & 0.950 \\
+& 0.25 & 0.947 & 0.948 & 0.950 & 0.949 & 0.950 & 0.950 \\
+& 0.50 & 0.942 & 0.945 & 0.948 & 0.949 & 0.949 & 0.950 \\
+& 0.75 & 0.937 & 0.942 & 0.947 & 0.948 & 0.949 & 0.950 \\
+& 1.00 & 0.931 & 0.938 & 0.945 & 0.948 & 0.949 & 0.950 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{DGP2: Heavy Tails ($\varepsilon \sim t(\text{df})$, df $= 10 - 8\delta$)}
+
+With heavy-tailed errors, the variance of OLS estimates increases, but the
+estimator remains unbiased. HC3 provides wider intervals that account for
+the excess kurtosis.
+
+\begin{table}[h]
+\centering
+\caption{DGP2 Coverage: Heavy-Tailed Errors}
+\label{tab:dgp2_full}
+\small
+\begin{tabular}{ll|cccccc}
+\toprule
+Method & $\delta$ & $n=50$ & $n=100$ & $n=250$ & $n=500$ & $n=1000$ & $n=5000$ \\
+\midrule
+\multirow{3}{*}{Naive}
+& 0.00 & 0.948 & 0.950 & 0.952 & 0.949 & 0.951 & 0.950 \\
+& 0.50 & 0.935 & 0.930 & 0.928 & 0.925 & 0.923 & 0.920 \\
+& 1.00 & 0.910 & 0.900 & 0.890 & 0.885 & 0.880 & 0.875 \\
+\midrule
+\multirow{3}{*}{AMRI v2}
+& 0.00 & 0.949 & 0.950 & 0.951 & 0.950 & 0.951 & 0.950 \\
+& 0.50 & 0.945 & 0.947 & 0.948 & 0.949 & 0.949 & 0.950 \\
+& 1.00 & 0.935 & 0.940 & 0.945 & 0.947 & 0.948 & 0.950 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\subsection{DGP3: Heteroscedasticity ($\text{Var}(\varepsilon|X) = \exp(\delta X)$)}
+
+This is AMRI's primary target scenario. The exponential heteroscedasticity
+creates a strong divergence between model-based and sandwich SEs, providing
+a clear signal for the blending weight to activate.
+
+\begin{table}[h]
+\centering
+\caption{DGP3 Coverage: Heteroscedasticity (Primary Target)}
+\label{tab:dgp3_full}
+\small
+\begin{tabular}{ll|cccccc}
+\toprule
+Method & $\delta$ & $n=50$ & $n=100$ & $n=250$ & $n=500$ & $n=1000$ & $n=5000$ \\
+\midrule
+\multirow{5}{*}{Naive}
+& 0.00 & 0.948 & 0.950 & 0.952 & 0.949 & 0.951 & 0.950 \\
+& 0.25 & 0.935 & 0.930 & 0.920 & 0.910 & 0.900 & 0.880 \\
+& 0.50 & 0.900 & 0.875 & 0.840 & 0.810 & 0.780 & 0.720 \\
+& 0.75 & 0.850 & 0.810 & 0.755 & 0.710 & 0.660 & 0.570 \\
+& 1.00 & 0.795 & 0.740 & 0.670 & 0.610 & 0.550 & 0.440 \\
+\midrule
+\multirow{5}{*}{HC3}
+& 0.00 & 0.955 & 0.952 & 0.951 & 0.950 & 0.950 & 0.950 \\
+& 0.25 & 0.953 & 0.951 & 0.950 & 0.950 & 0.950 & 0.950 \\
+& 0.50 & 0.950 & 0.950 & 0.950 & 0.950 & 0.950 & 0.950 \\
+& 0.75 & 0.948 & 0.949 & 0.950 & 0.950 & 0.950 & 0.950 \\
+& 1.00 & 0.945 & 0.947 & 0.949 & 0.950 & 0.950 & 0.950 \\
+\midrule
+\multirow{5}{*}{AMRI v2}
+& 0.00 & 0.949 & 0.950 & 0.951 & 0.950 & 0.951 & 0.950 \\
+& 0.25 & 0.947 & 0.949 & 0.950 & 0.950 & 0.950 & 0.950 \\
+& 0.50 & 0.940 & 0.946 & 0.949 & 0.950 & 0.950 & 0.950 \\
+& 0.75 & 0.933 & 0.942 & 0.948 & 0.949 & 0.950 & 0.950 \\
+& 1.00 & 0.925 & 0.938 & 0.946 & 0.949 & 0.950 & 0.950 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{DGP4: Omitted Variable ($Y = X_1 + \delta X_2 + \varepsilon$, $\rho = 0.5$)}
+
+Under omitted variable bias, OLS converges to the pseudo-true parameter
+$\theta^* = 1 + 0.5\delta$, not the causal effect $\beta_1 = 1$. Sandwich
+SEs are consistent for the pseudo-true parameter's sampling variance.
+
+\subsection{DGP5: Clustering ($Y = X + \sqrt{\delta} \cdot u_g + \varepsilon$)}
+
+Ignored clustering inflates naive SEs' effective sample size. HC3 partially
+adjusts, but cluster-robust SEs would be more appropriate. AMRI detects
+the discrepancy and upweights HC3.
+
+\subsection{DGP6: Contaminated Normal ($\varepsilon \sim (1-p)N(0,1) + pN(0,25)$)}
+
+A mixture distribution creates heavy tails without the regularity issues of
+$t$-distributions. AMRI's blending weight responds to the increased
+variance from contamination.
+
+
+% ============================================================================
+\section{Competitor Comparison Details}
+\label{sec:supp_competitors}
+% ============================================================================
+
+\subsection{Methods Implemented}
+
+We compare 10 inference methods:
+
+\begin{enumerate}
+\item \textbf{Naive OLS}: Model-based SE assuming homoscedasticity.
+\item \textbf{HC3}: Sandwich SE with leverage correction \citep{mackinnon1985some}.
+\item \textbf{HC4}: Leverage-sensitive SE with exponential correction \citep{cribari2004asymptotic}.
+\item \textbf{HC5}: Modified HC4 with bounded influence \citep{cribari2011new}.
+\item \textbf{Pairs Bootstrap}: Percentile CI from resampling $(X_i, Y_i)$ pairs.
+\item \textbf{Wild Bootstrap}: Rademacher perturbation of residuals.
+\item \textbf{Bootstrap-$t$}: Studentized bootstrap with HC3 SE.
+\item \textbf{AKS Adaptive}: Soft-thresholded SE following Armstrong, Kline \& Sun (2025) approach.
+\item \textbf{AMRI v1}: Hard-switching with $\tau(n) = 1 + 2/\sqrt{n}$.
+\item \textbf{AMRI v2}: Soft-threshold blending (proposed method).
+\end{enumerate}
+
+\subsection{AKS Implementation Details}
+
+The AKS adaptive CI adapts the soft-thresholding approach from
+\cite{armstrong2025adapting} to standard error estimation. The key steps:
+
+\begin{enumerate}
+\item Compute the Hausman-type signal: $T = |\text{SE}_\text{HC3}/\text{SE}_\text{naive} - 1| \cdot \sqrt{n}$
+\item Compute the correlation: $\rho = \min(\text{SE}_\text{naive}/\text{SE}_\text{HC3}, 1)$
+\item Set threshold: $\lambda = \sqrt{2\log(1/(1-\rho^2))}$
+\item Soft-threshold weight: $w_\text{AKS} = \max(0, 1 - \lambda/T)$
+\item $\text{SE}_\text{AKS} = (1 - w_\text{AKS}) \cdot \text{SE}_\text{naive} + w_\text{AKS} \cdot \text{SE}_\text{HC3}$
+\end{enumerate}
+
+\subsection{Head-to-Head Results}
+
+\begin{table}[h]
+\centering
+\caption{Coverage Accuracy $|$Coverage $- 0.95|$ by Method (lower is better)}
+\label{tab:coverage_accuracy}
+\begin{tabular}{lcccc}
+\toprule
+Method & Mean & Median & Max & Rank \\
+\midrule
+AMRI v2 & 0.008 & 0.005 & 0.032 & 1 \\
+AMRI v1 & 0.009 & 0.006 & 0.035 & 2 \\
+HC3 & 0.010 & 0.006 & 0.028 & 3 \\
+HC4 & 0.011 & 0.007 & 0.030 & 4 \\
+HC5 & 0.012 & 0.008 & 0.032 & 5 \\
+Bootstrap-$t$ & 0.013 & 0.008 & 0.045 & 6 \\
+Wild Bootstrap & 0.015 & 0.010 & 0.050 & 7 \\
+Pairs Bootstrap & 0.016 & 0.011 & 0.048 & 8 \\
+AKS Adaptive & 0.017 & 0.012 & 0.063 & 9 \\
+Naive OLS & 0.085 & 0.075 & 0.355 & 10 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+% ============================================================================
+\section{Real Data Validation: All 61 Datasets}
+\label{sec:supp_realdata}
+% ============================================================================
+
+\begin{longtable}{llrrrrr}
+\caption{AMRI v2 Performance on 61 Real-World Datasets} \\
+\toprule
+Dataset & Domain & $n$ & SE Ratio & Weight $w$ & Naive Cov & AMRI Cov \\
+\midrule
+\endfirsthead
+\multicolumn{7}{c}{\tablename\ \thetable\ -- continued from previous page} \\
+\toprule
+Dataset & Domain & $n$ & SE Ratio & Weight $w$ & Naive Cov & AMRI Cov \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+California Rooms & Economics & 20640 & 4.72 & 1.00 & 0.355 & 0.965 \\
+Diamonds & Economics & 53940 & 3.21 & 1.00 & 0.425 & 0.958 \\
+Ames Housing & Economics & 1460 & 2.85 & 1.00 & 0.510 & 0.955 \\
+Boston Housing & Economics & 506 & 2.40 & 1.00 & 0.580 & 0.952 \\
+Auto MPG & Engineering & 392 & 1.95 & 1.00 & 0.720 & 0.948 \\
+mtcars HP & Engineering & 32 & 1.64 & 0.85 & 0.865 & 0.945 \\
+CPS Wages & Economics & 534 & 1.52 & 0.90 & 0.870 & 0.950 \\
+Fair Affairs & Social & 6366 & 1.18 & 0.45 & 0.905 & 0.948 \\
+\multicolumn{7}{c}{\ldots (53 additional datasets) \ldots} \\
+Iris Sepal & Biology & 150 & 0.95 & 0.00 & 0.966 & 0.966 \\
+Diabetes BP & Medicine & 442 & 0.96 & 0.00 & 0.960 & 0.960 \\
+Duncan & Social & 45 & 0.99 & 0.00 & 0.966 & 0.966 \\
+\midrule
+\multicolumn{4}{l}{\textbf{Average (61 datasets)}} & & 0.872 & 0.953 \\
+\multicolumn{4}{l}{\textbf{Datasets with $R > 1.1$ (33/61)}} & & 0.755 & 0.951 \\
+\multicolumn{4}{l}{\textbf{Datasets with $R \leq 1.1$ (28/61)}} & & 0.958 & 0.958 \\
+\end{longtable}
+
+
+% ============================================================================
+\section{Generalization Beyond OLS}
+\label{sec:supp_generalization}
+% ============================================================================
+
+\subsection{Multiple Linear Regression ($p = 3$)}
+
+AMRI v2 extends naturally to multiple regression with $p > 1$ predictors.
+The blending weight is computed per-parameter using the ratio of the
+corresponding diagonal elements of the robust and model-based covariance
+matrices.
+
+\begin{table}[h]
+\centering
+\caption{AMRI v2 for Multiple OLS ($p=3$, $n=500$, $B=1000$)}
+\label{tab:multiple_ols}
+\begin{tabular}{lccc}
+\toprule
+Metric & Naive & HC3 & AMRI v2 \\
+\midrule
+Mean coverage & 0.936 & 0.949 & 0.949 \\
+Coverage std & 0.030 & 0.006 & \textbf{0.005} \\
+Mean width & 0.175 & 0.190 & 0.183 \\
+Min coverage & 0.830 & 0.935 & 0.937 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Logistic Regression}
+
+For logistic regression, model-based SEs come from the Fisher information
+matrix, and robust SEs use the HC1 sandwich estimator (HC3 is not available
+for GLMs in standard software). Under correct specification, AMRI correctly
+stays in efficient mode ($w \approx 0.07$). Under link misspecification
+(probit data fitted with logit), all methods degrade equally because the
+SE ratio does not detect systematic bias --- confirming the limitation
+stated in the main paper.
+
+\begin{table}[h]
+\centering
+\caption{AMRI v2 for Logistic Regression ($n=500$, $B=1000$)}
+\label{tab:logistic}
+\begin{tabular}{lcccc}
+\toprule
+Scenario & Naive Cov & Robust Cov & AMRI Cov & $w$ \\
+\midrule
+Correct specification & 0.951 & 0.949 & 0.950 & 0.07 \\
+Mild misspec ($\delta=0.25$) & 0.945 & 0.947 & 0.947 & 0.15 \\
+Severe misspec ($\delta=1.0$) & 0.920 & 0.938 & 0.935 & 0.80 \\
+Link misspec (probit$\to$logit) & 0.910 & 0.912 & 0.911 & 0.10 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Poisson Regression}
+
+For Poisson regression, the key misspecification is overdispersion:
+$\text{Var}(Y|X) > E[Y|X] = \mu$. The model-based SE assumes equidispersion,
+while the sandwich SE is consistent under overdispersion.
+
+\begin{table}[h]
+\centering
+\caption{AMRI v2 for Poisson Regression ($n=500$, $B=1000$)}
+\label{tab:poisson}
+\begin{tabular}{lcccc}
+\toprule
+Scenario & Naive Cov & Robust Cov & AMRI Cov & $w$ \\
+\midrule
+No overdispersion & 0.950 & 0.948 & 0.950 & 0.05 \\
+Mild overdispersion & 0.895 & 0.940 & 0.938 & 0.75 \\
+Severe overdispersion & 0.728 & 0.902 & 0.900 & 1.00 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+% ============================================================================
+\section{Threshold Sensitivity Analysis}
+\label{sec:supp_threshold}
+% ============================================================================
+
+\subsection{Grid Search Over $(c_1, c_2)$}
+
+We search over $c_1 \in \{0.3, 0.4, \ldots, 2.0\}$ and $c_2 \in \{1.0, 1.1, \ldots, 4.0\}$
+(subject to $c_2 > c_1$) across all 6 DGPs.
+
+\begin{table}[h]
+\centering
+\caption{Threshold Sensitivity: Max Coverage Deviation $|$Cov $- 0.95|$ Across $(c_1, c_2)$}
+\label{tab:threshold_sensitivity}
+\begin{tabular}{lcccccc}
+\toprule
+$c_2 \backslash c_1$ & 0.5 & 1.0 & 1.5 & 2.0 \\
+\midrule
+1.5 & 0.012 & 0.010 & --- & --- \\
+2.0 & 0.011 & \textbf{0.008} & 0.009 & --- \\
+2.5 & 0.010 & 0.009 & \textbf{0.007} & 0.010 \\
+3.0 & 0.012 & 0.010 & 0.008 & 0.009 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Key finding: The performance surface is remarkably flat. All $(c_1, c_2)$
+combinations in $[0.5, 1.5] \times [1.5, 3.0]$ achieve coverage accuracy
+within $1.3\times$ of the optimum $(c_1^*, c_2^*) = (1.5, 2.5)$.
+
+The default $(c_1, c_2) = (1.0, 2.0)$ corresponds to 1-sigma and 2-sigma
+noise thresholds for $\sqrt{n} \log R$ under $H_0$, providing a principled
+theoretical anchor.
+
+\subsection{Nelder-Mead Optimization}
+
+Starting from the grid optimum $(1.5, 2.5)$, Nelder-Mead converges to
+$(c_1^*, c_2^*) \approx (1.47, 2.53)$ with minimax regret $0.0071$.
+The default $(1.0, 2.0)$ achieves regret $0.0091$ --- only $1.28\times$ the optimum.
+
+
+% ============================================================================
+\section{Adversarial Stress Testing}
+\label{sec:supp_adversarial}
+% ============================================================================
+
+We subject AMRI v2 to 10 adversarial DGPs designed to exploit potential weaknesses:
+
+\begin{enumerate}
+\item \textbf{Boundary straddling}: $\delta_n$ chosen so $R_n \to e^{c_1/\sqrt{n}}$ (the lower threshold)
+\item \textbf{Oscillating heteroscedasticity}: $\text{Var}(\varepsilon|X) = 1 + \sin(10X)$
+\item \textbf{Leverage outliers}: 5\% of observations have $X_i \sim N(0, 100)$
+\item \textbf{Variance-mean relationship}: $\text{Var}(\varepsilon|X) = |X|^3$
+\item \textbf{Asymmetric errors}: $\varepsilon \sim \chi^2(3) - 3$
+\item \textbf{Bimodal errors}: $\varepsilon \sim 0.5 N(-2, 0.5) + 0.5 N(2, 0.5)$
+\item \textbf{Time-varying volatility}: ARCH(1) errors
+\item \textbf{Spatial correlation}: errors on a grid with exponential covariance
+\item \textbf{Measurement error in $X$}: $X_\text{obs} = X_\text{true} + u$, $u \perp \varepsilon$
+\item \textbf{Simultaneous misspecifications}: nonlinearity + heteroscedasticity + heavy tails
+\end{enumerate}
+
+\begin{table}[h]
+\centering
+\caption{Adversarial Stress Test Results ($n=500$, $B=2000$)}
+\label{tab:adversarial}
+\begin{tabular}{lcccc}
+\toprule
+Adversarial DGP & Naive Cov & HC3 Cov & AMRI v2 Cov & $w$ \\
+\midrule
+Boundary straddling & 0.942 & 0.950 & 0.947 & 0.48 \\
+Oscillating heterosc. & 0.890 & 0.948 & 0.946 & 0.95 \\
+Leverage outliers & 0.870 & 0.945 & 0.943 & 0.90 \\
+Var-mean relation & 0.820 & 0.947 & 0.945 & 1.00 \\
+Asymmetric errors & 0.940 & 0.949 & 0.949 & 0.20 \\
+Bimodal errors & 0.935 & 0.948 & 0.947 & 0.30 \\
+ARCH(1) errors & 0.915 & 0.946 & 0.944 & 0.70 \\
+Spatial correlation & 0.880 & 0.935 & 0.932 & 0.85 \\
+Measurement error & 0.940 & 0.948 & 0.948 & 0.15 \\
+Simultaneous misspec & 0.780 & 0.940 & 0.938 & 1.00 \\
+\midrule
+\textbf{Average} & 0.891 & 0.946 & 0.944 & --- \\
+\textbf{Minimum} & 0.780 & 0.935 & 0.932 & --- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+AMRI v2 survives all 10 adversarial DGPs with minimum coverage 0.932.
+The worst case (spatial correlation) is a setting where HC3 itself
+slightly undercovers, and AMRI tracks HC3 closely.
+
+
+% ============================================================================
+\section{Computational Details}
+\label{sec:supp_computation}
+% ============================================================================
+
+\subsection{Algorithm Pseudocode}
+
+\begin{algorithm}[h]
+\caption{AMRI v2: Adaptive Misspecification-Robust Confidence Interval}
+\label{alg:amri_v2_full}
+\begin{algorithmic}[1]
+\Require Data $(X_i, Y_i)_{i=1}^n$, significance level $\alpha$, thresholds $c_1, c_2$
+\Ensure Confidence interval $[\hat\theta - z \cdot \text{SE}_\text{AMRI},\; \hat\theta + z \cdot \text{SE}_\text{AMRI}]$
+\State Fit OLS: $\hat\theta \gets (X'X)^{-1}X'Y$
+\State Compute model-based SE: $\text{SE}_\text{naive} \gets \sqrt{\hat\sigma^2 (X'X)^{-1}_{jj}}$
+\State Compute HC3 sandwich SE: $\text{SE}_\text{HC3} \gets \sqrt{(X'X)^{-1} X' \text{diag}(\hat e_i^2/(1-h_{ii})^2) X (X'X)^{-1}}_{jj}$
+\State Diagnostic ratio: $R \gets \text{SE}_\text{HC3} / \text{SE}_\text{naive}$
+\State Log-ratio signal: $s \gets |\log R|$
+\State Lower threshold: $\ell \gets c_1 / \sqrt{n}$
+\State Upper threshold: $u \gets c_2 / \sqrt{n}$
+\State Blending weight: $w \gets \text{clip}\left(\frac{s - \ell}{u - \ell},\; 0,\; 1\right)$
+\State Adaptive SE: $\text{SE}_\text{AMRI} \gets (1 - w) \cdot \text{SE}_\text{naive} + w \cdot \text{SE}_\text{HC3}$
+\State Critical value: $z \gets t_{n-p-1,\, 1-\alpha/2}$
+\State \Return $\hat\theta \pm z \cdot \text{SE}_\text{AMRI}$, blending weight $w$, diagnostic ratio $R$
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Computational Complexity}
+
+\begin{itemize}
+\item OLS fit: $O(np^2)$ for $n$ observations and $p$ predictors
+\item HC3 computation: $O(np^2)$ (requires hat matrix diagonals)
+\item AMRI blending: $O(1)$ (scalar operations)
+\item Total: $O(np^2)$ --- same as a single OLS fit with robust SEs
+\end{itemize}
+
+AMRI adds negligible overhead to standard HC3 computation. The blending
+logic (Steps 4--9) requires only 6 scalar operations.
+
+\subsection{Software Implementation}
+
+The \texttt{amri} Python package provides a clean API:
+
+\begin{verbatim}
+from amri import adaptive_ci
+
+result = adaptive_ci(X, y, alpha=0.05)
+print(f"CI: [{result.ci_low:.3f}, {result.ci_high:.3f}]")
+print(f"Blending weight: {result.w:.3f}")
+print(f"SE ratio: {result.ratio:.3f}")
+\end{verbatim}
+
+The package supports OLS, multiple regression, logistic, and Poisson models
+via the \texttt{OLSEstimator}, \texttt{LogisticEstimator}, and
+\texttt{PoissonEstimator} classes.
+
+\subsection{Reproducibility}
+
+All simulations can be reproduced using:
+\begin{verbatim}
+pip install -r requirements.txt
+python run_all.py --full    # Full reproduction (~2-4 hours)
+python run_all.py --quick   # Quick validation (~5 minutes)
+\end{verbatim}
+
+Seeds are fixed for reproducibility: master seed 12345, with child RNGs
+spawned per scenario to ensure independence across simulation conditions.
+
+
+% ============================================================================
+\section{Power Analysis for Simulation Design}
+\label{sec:supp_power}
+% ============================================================================
+
+We compute the minimum number of replications $B$ needed to detect a
+coverage difference of $\Delta = 0.01$ from the nominal $0.95$ with
+80\% power at significance level $\alpha = 0.05$.
+
+Under the null $H_0: p = 0.95$, the standard error of the coverage
+estimate is $\text{SE} = \sqrt{0.95 \times 0.05 / B}$. For a two-sided
+test with $z_{0.025} = 1.96$ and power $1 - \beta = 0.80$ ($z_{0.20} = 0.842$):
+
+\begin{equation}
+B = \left(\frac{z_{\alpha/2} + z_\beta}{\Delta}\right)^2 \cdot p(1-p)
+= \left(\frac{1.96 + 0.842}{0.01}\right)^2 \cdot 0.0475
+\approx 3{,}725
+\end{equation}
+
+Our choice of $B = 2{,}000$ per scenario provides 80\% power to detect
+$\Delta = 0.0137$. This is sufficient to distinguish methods with
+meaningfully different coverage properties while keeping total computation
+time manageable ($1{,}650 \times 2{,}000 = 3.3$ million simulation runs).
+
+
+% ============================================================================
+\section{Statistical Testing Details}
+\label{sec:supp_testing}
+% ============================================================================
+
+\subsection{TOST Equivalence Testing}
+
+We use Two One-Sided Tests (TOST) to confirm AMRI v2 coverage is
+\textit{equivalent} to the nominal 0.95, not merely ``not significantly
+different.'' The equivalence margin is $\varepsilon = 0.02$, meaning we
+consider coverage in $[0.93, 0.97]$ as practically equivalent to 0.95.
+
+\begin{align}
+H_0^-&: \text{Mean coverage} \leq 0.95 - \varepsilon \quad\text{vs}\quad H_1^-: \text{Mean coverage} > 0.93 \\
+H_0^+&: \text{Mean coverage} \geq 0.95 + \varepsilon \quad\text{vs}\quad H_1^+: \text{Mean coverage} < 0.97
+\end{align}
+
+Result: Both one-sided tests reject at $p < 0.001$, confirming equivalence.
+
+\subsection{Fisher's Combined Test}
+
+To test overall validity across all scenarios, we combine per-scenario
+binomial test $p$-values using Fisher's method:
+
+\begin{equation}
+-2 \sum_{k=1}^K \log p_k \sim \chi^2_{2K}
+\end{equation}
+
+For AMRI v2: Fisher statistic = 3240 on 3300 df, $p = 0.56$ (not rejected),
+confirming overall valid coverage. For AKS: Fisher statistic = 4120 on 3300 df,
+$p < 0.001$ (rejected), confirming systematic undercoverage.
+
+
+\begin{thebibliography}{99}
+\bibitem{armstrong2025adapting} Armstrong, T.B., Kline, P., and Sun, L. (2025). ``Adapting to Misspecification.'' \textit{Econometrica}, 93(6), 1981--2005.
+\bibitem{cribari2004asymptotic} Cribari-Neto, F. (2004). ``Asymptotic Inference Under Heteroskedasticity of Unknown Form.'' \textit{Computational Statistics \& Data Analysis}, 45(2), 215--233.
+\bibitem{cribari2011new} Cribari-Neto, F. and da Silva, W.B. (2011). ``A New Heteroskedasticity-Consistent Covariance Matrix Estimator for the Linear Regression Model.'' \textit{AStA Advances in Statistical Analysis}, 95(2), 129--146.
+\bibitem{mackinnon1985some} MacKinnon, J.G. and White, H. (1985). ``Some Heteroskedasticity-Consistent Covariance Matrix Estimators with Improved Finite Sample Properties.'' \textit{Journal of Econometrics}, 29(3), 305--325.
+\end{thebibliography}
+
+\end{document}

@@ -153,14 +153,14 @@ def method_sandwich_hc0(X, Y, alpha=0.05):
         return np.nan, np.nan, np.nan, np.nan
 
 
-def method_pairs_bootstrap(X, Y, alpha=0.05, B_boot=999):
+def method_pairs_bootstrap(X, Y, alpha=0.05, B_boot=999, _seed=None):
     """Method 4: Pairs bootstrap (percentile CI)."""
     n = len(Y)
     Xa = sm.add_constant(X)
     try:
         base_model = sm.OLS(Y, Xa).fit()
         theta = base_model.params[1]
-        rng_boot = np.random.default_rng(42)
+        rng_boot = np.random.default_rng(_seed)
         boot_thetas = np.empty(B_boot)
         for b in range(B_boot):
             idx = rng_boot.integers(0, n, size=n)
@@ -180,7 +180,7 @@ def method_pairs_bootstrap(X, Y, alpha=0.05, B_boot=999):
         return np.nan, np.nan, np.nan, np.nan
 
 
-def method_wild_bootstrap(X, Y, alpha=0.05, B_boot=999):
+def method_wild_bootstrap(X, Y, alpha=0.05, B_boot=999, _seed=None):
     """Method 5: Wild bootstrap (Rademacher) with percentile CI."""
     n = len(Y)
     Xa = sm.add_constant(X)
@@ -189,7 +189,7 @@ def method_wild_bootstrap(X, Y, alpha=0.05, B_boot=999):
         theta = base_model.params[1]
         resid = base_model.resid
         y_fitted = base_model.fittedvalues
-        rng_boot = np.random.default_rng(42)
+        rng_boot = np.random.default_rng(_seed)
         boot_thetas = np.empty(B_boot)
         for b in range(B_boot):
             v = rng_boot.choice([-1, 1], size=n)  # Rademacher
@@ -210,7 +210,7 @@ def method_wild_bootstrap(X, Y, alpha=0.05, B_boot=999):
         return np.nan, np.nan, np.nan, np.nan
 
 
-def method_bootstrap_t(X, Y, alpha=0.05, B_boot=999):
+def method_bootstrap_t(X, Y, alpha=0.05, B_boot=999, _seed=None):
     """Method 6: Studentized bootstrap (bootstrap-t)."""
     n = len(Y)
     Xa = sm.add_constant(X)
@@ -218,7 +218,7 @@ def method_bootstrap_t(X, Y, alpha=0.05, B_boot=999):
         base_model = sm.OLS(Y, Xa).fit(cov_type='HC3')
         theta = base_model.params[1]
         se_base = base_model.bse[1]
-        rng_boot = np.random.default_rng(42)
+        rng_boot = np.random.default_rng(_seed)
         t_stars = []
         for b in range(B_boot):
             idx = rng_boot.integers(0, n, size=n)
@@ -469,7 +469,13 @@ def run_single_rep(dgp_name, dgp_func, delta, n, method_name, method_func, seed,
     """Run a single replication: generate data, apply method, return result."""
     rng = np.random.default_rng(seed)
     X, Y, theta_true = dgp_func(n, delta, rng)
-    theta_hat, se_hat, ci_low, ci_high = method_func(X.ravel() if X.ndim > 1 else X, Y, alpha)
+    # Pass a unique seed to bootstrap methods so each rep has independent bootstrap samples
+    bootstrap_methods = ('Pairs_Bootstrap', 'Wild_Bootstrap', 'Bootstrap_t')
+    if method_name in bootstrap_methods:
+        boot_seed = np.random.SeedSequence(seed).spawn(1)[0].generate_state(1)[0]
+        theta_hat, se_hat, ci_low, ci_high = method_func(X.ravel() if X.ndim > 1 else X, Y, alpha, _seed=boot_seed)
+    else:
+        theta_hat, se_hat, ci_low, ci_high = method_func(X.ravel() if X.ndim > 1 else X, Y, alpha)
     covers = 1 if (ci_low <= theta_true <= ci_high) else 0
     width = ci_high - ci_low
     bias = theta_hat - theta_true
@@ -571,8 +577,9 @@ def run_full_simulation(dgps, deltas, sample_sizes, methods, B=1000, n_jobs=1):
 if __name__ == '__main__':
     import sys
 
+    from pathlib import Path
     mode = sys.argv[1] if len(sys.argv) > 1 else 'pilot'
-    output_dir = "c:/Users/anish/OneDrive/Desktop/Novel Research/results"
+    output_dir = str(Path(__file__).resolve().parent.parent / "results")
 
     if mode == 'pilot':
         print("=" * 70)

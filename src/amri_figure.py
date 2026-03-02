@@ -13,7 +13,7 @@ plt.rcParams.update({
     'font.family': 'serif',
 })
 
-FIGS = Path("c:/Users/anish/OneDrive/Desktop/Novel Research/figures")
+FIGS = Path(__file__).resolve().parent.parent / "figures"
 COLORS = {
     'Naive_OLS': '#d62728', 'Sandwich_HC0': '#ff7f0e', 'Sandwich_HC3': '#2ca02c',
     'Pairs_Bootstrap': '#1f77b4', 'Wild_Bootstrap': '#9467bd', 'Bootstrap_t': '#8c564b',
@@ -27,7 +27,7 @@ LABELS = {
 
 # Load data
 dfs = []
-for f in Path("c:/Users/anish/OneDrive/Desktop/Novel Research/results").glob("*.csv"):
+for f in (Path(__file__).resolve().parent.parent / "results").glob("*.csv"):
     dfs.append(pd.read_csv(f))
 df = pd.concat(dfs, ignore_index=True)
 if 'B_valid' in df.columns and 'B' not in df.columns:

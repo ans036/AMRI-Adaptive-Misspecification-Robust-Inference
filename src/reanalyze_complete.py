@@ -25,8 +25,8 @@ plt.rcParams.update({
     'font.family': 'serif',
 })
 
-RESULTS_DIR = Path("c:/Users/anish/OneDrive/Desktop/Novel Research/results")
-FIGS = Path("c:/Users/anish/OneDrive/Desktop/Novel Research/figures")
+RESULTS_DIR = Path(__file__).resolve().parent.parent / "results"
+FIGS = Path(__file__).resolve().parent.parent / "figures"
 FIGS.mkdir(exist_ok=True)
 
 COLORS = {

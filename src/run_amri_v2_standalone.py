@@ -10,6 +10,7 @@ import sys
 import numpy as np
 import pandas as pd
 from scipy import stats
+from pathlib import Path
 import time
 import warnings
 
@@ -276,7 +277,7 @@ if __name__ == '__main__':
                 f"{te-ts:.1f}s | elapsed={elapsed/60:.1f}m | ETA={eta/60:.1f}m")
 
     df = pd.DataFrame(results)
-    outpath = "c:/Users/anish/OneDrive/Desktop/Novel Research/results/results_amri_v2.csv"
+    outpath = str(Path(__file__).resolve().parent.parent / "results" / "results_amri_v2.csv")
     df.to_csv(outpath, index=False)
 
     total_time = time.time() - t0

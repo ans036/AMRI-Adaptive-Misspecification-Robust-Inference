@@ -9,8 +9,8 @@ from pathlib import Path
 import warnings
 warnings.filterwarnings('ignore')
 
-RESULTS = Path("c:/Users/anish/OneDrive/Desktop/Novel Research/results")
-FIGS = Path("c:/Users/anish/OneDrive/Desktop/Novel Research/figures")
+RESULTS = Path(__file__).resolve().parent.parent / "results"
+FIGS = Path(__file__).resolve().parent.parent / "figures"
 
 # ============================================================================
 # LOAD DATA

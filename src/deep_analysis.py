@@ -18,7 +18,7 @@ plt.rcParams.update({
     'font.family': 'serif',
 })
 
-FIGS = Path("c:/Users/anish/OneDrive/Desktop/Novel Research/figures")
+FIGS = Path(__file__).resolve().parent.parent / "figures"
 FIGS.mkdir(exist_ok=True)
 
 COLORS = {
@@ -40,7 +40,7 @@ DGP_LABELS = {
 }
 
 def load_all():
-    results_dir = Path("c:/Users/anish/OneDrive/Desktop/Novel Research/results")
+    results_dir = Path(__file__).resolve().parent.parent / "results"
     dfs = []
     for f in results_dir.glob("*.csv"):
         dfs.append(pd.read_csv(f))

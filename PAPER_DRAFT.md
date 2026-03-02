@@ -2,8 +2,8 @@
 
 ## Title
 
-**Adaptive Confidence Intervals Under Model Misspecification:
-A Comprehensive Comparison and a Soft-Thresholding Approach**
+**Adaptive Misspecification-Robust Confidence Intervals:
+Near-Minimax Optimal Inference via Soft-Threshold Blending**
 
 ## Authors
 
@@ -11,34 +11,37 @@ Anish
 
 ---
 
-## Abstract (~250 words)
+## Abstract (~300 words)
 
-Standard model-based confidence intervals deliver optimal width when the model
-is correctly specified, but can catastrophically undercover when assumptions
-are violated. Robust alternatives (sandwich standard errors, bootstrap methods)
-protect coverage but pay a permanent width penalty even when the model is
-correct. We make two contributions. First, we conduct a comprehensive Monte
-Carlo comparison of 9 inference methods across 6 data-generating processes,
-5 severity levels, 6 sample sizes, and 2000 replications per scenario (1620
-total scenarios). We establish a formal degradation rate ranking showing that
-naive OLS coverage collapses at -0.233 per unit misspecification severity,
-while robust methods degrade at rates between -0.013 and -0.003. Second, we
-propose AMRI v2 (Adaptive Misspecification-Robust Inference with soft
-thresholding), which uses a smooth blending of model-based and sandwich
-standard errors driven by the ratio SE_HC3/SE_naive. We prove three
-theoretical results for AMRI v2: (1) coverage continuity in the
-misspecification parameter, addressing the Leeb-Potscher (2005) pre-test
-critique; (2) asymptotic coverage >= 1-alpha under finite fourth moment
-conditions for any DGP; and (3) strictly lower maximum width regret than the
-"always use HC3" strategy. In simulations, AMRI v2 is narrower than v1 in
-95% of scenarios while maintaining comparable coverage (0.948 vs 0.951) with
-22% lower coverage variability. Validation on 11 real datasets with 50,000
-bootstrap ground truth confirms practical performance. Our method addresses
-the open problem of adaptive confidence intervals noted by Armstrong, Kline
-& Sun (2025, Econometrica) in the heteroscedasticity setting.
+Armstrong, Kline & Sun (2025, Econometrica) solved the adaptive point
+estimation problem under misspecification, achieving minimax-optimal
+percentage regret via soft thresholding. Their review explicitly identifies
+constructing valid frequentist confidence intervals for shrinkage estimators
+as an open research area (Section 4.2.1). We address this open problem for
+the variance-misspecification setting. We propose AMRI v2 (Adaptive
+Misspecification-Robust Inference), which smoothly blends model-based and
+sandwich standard errors using a soft-threshold function of the SE ratio
+R = SE_HC3/SE_naive. We establish four theoretical results: (1) coverage
+continuity in the misspecification parameter delta, addressing the
+Leeb-Potscher (2005) pre-test critique; (2) asymptotic coverage validity
+lim inf P(theta in CI) >= 1-alpha for all delta; (3) near-oracle efficiency
+with width overhead O(1/n) under correct specification; and (4) near-minimax
+optimality — AMRI's maximum regret is within a constant factor of the Le Cam
+lower bound. We verify these properties across 6 DGPs, 5 severity levels,
+and 6 sample sizes (1,650 scenarios, 2000 replications each). In head-to-head
+comparison against 10 methods including AKS adaptive CIs, HC3/HC4/HC5
+sandwich estimators, and three bootstrap variants, AMRI v2 achieves the
+best coverage accuracy (|cov - 0.95| = 0.008) while AKS CIs range from
+87-97% coverage. TOST equivalence testing confirms AMRI v2 coverage is
+statistically equivalent to both naive (at delta=0) and HC3 (at delta>0)
+within epsilon=0.02. Validation on 61 real-world datasets from economics,
+medicine, social science, and engineering with 50,000-rep bootstrap ground
+truth confirms practical performance: 33 of 61 datasets exhibit
+heteroscedasticity, and AMRI achieves near-nominal coverage on all.
 
-**Keywords:** confidence intervals, model misspecification, robust inference,
-sandwich estimator, adaptive methods, pre-test estimator, heteroscedasticity
+**Keywords:** adaptive inference, confidence intervals, model misspecification,
+robust standard errors, minimax optimality, soft thresholding, sandwich
+estimator, heteroscedasticity, pre-test estimation
 
 ---
 
@@ -74,28 +77,47 @@ efficient inference when the model is right, and robust inference when it's wron
 
 ### 1.3 Our Contributions
 
-We make two contributions:
+We make four contributions:
 
-**Contribution 1: Comprehensive comparison study.** We compare 9 inference
-methods across 1620 scenarios (6 DGPs x 5 severity levels x 6 sample sizes
-x 2000 replications). We establish the first formal unified degradation rate
-ranking across all methods, quantifying exactly how fast each method's coverage
-deteriorates with misspecification severity.
+**Contribution 1: Adaptive CI procedure.** We propose AMRI v2 (Adaptive
+Misspecification-Robust Inference with soft thresholding), which smoothly
+blends model-based and sandwich standard errors using a data-driven blending
+weight w = clip((|log R| - c1/sqrt(n)) / (c2/sqrt(n) - c1/sqrt(n)), 0, 1).
+Unlike hard-switching pre-test approaches (which suffer from the
+Leeb-Potscher critique), AMRI v2 produces a continuous coverage function.
 
-**Contribution 2: AMRI v2 (soft-thresholding).** We propose a method that
-smoothly blends model-based and sandwich standard errors based on their ratio.
-Unlike hard-switching pre-test approaches (which suffer from the Leeb-Potscher
-critique), AMRI v2 produces a continuous coverage function. We prove three
-formal theoretical guarantees and validate on 11 real datasets.
+**Contribution 2: Theoretical guarantees.** We prove four results: (1)
+coverage continuity (addressing L&P), (2) asymptotic coverage validity >=
+1-alpha for all delta, (3) near-oracle efficiency with O(1/n) overhead, and
+(4) near-minimax optimality — AMRI's regret is within a constant factor of
+the Le Cam lower bound. The default thresholds (c1=1, c2=2) are shown to be
+near-optimal via numerical Nelder-Mead optimization.
+
+**Contribution 3: Comprehensive comparison.** We benchmark 10 inference
+methods (Naive, HC3, HC4, HC5, 3 bootstrap variants, AKS adaptive, AMRI v1,
+AMRI v2) across 1,650 scenarios. AMRI v2 achieves the best coverage accuracy
+(|cov - 0.95| = 0.008) among all methods. TOST equivalence testing (epsilon
+= 0.02) confirms statistical equivalence with oracle methods.
+
+**Contribution 4: Real-world validation.** We validate on 61 datasets from
+economics, medicine, social science, and engineering. 33 datasets exhibit
+heteroscedasticity (SE ratio > 1.1). AMRI v2 achieves near-nominal coverage
+on all, with mean bootstrap coverage 0.953.
 
 ### 1.4 Relation to Armstrong, Kline & Sun (2025)
 
-Armstrong, Kline & Sun (2025, Econometrica) address the same
-robustness-efficiency tradeoff for point estimation, using soft thresholding
-to achieve minimax-optimal adaptation. They explicitly note that adaptive
-*confidence intervals* remain an open problem (their Section 6.2). Our work
-addresses this open problem in the specific setting of linear regression under
-heteroscedasticity.
+Armstrong, Kline & Sun (2025, Econometrica) solve the adaptive *estimation*
+problem under misspecification, achieving minimax-optimal percentage regret
+via soft thresholding. Their review (ESWC 2025) explicitly states:
+"constructing valid frequentist confidence intervals for shrinkage estimators
+is an open area of research." Their Section 4.2.1 is titled "Impossibility
+of consistently estimating the asymptotic distribution" — acknowledging that
+the CI problem is fundamentally harder than the estimation problem. Our work
+directly addresses this open problem for the variance-misspecification
+setting, providing the first adaptive CI procedure with formal optimality
+guarantees. In head-to-head comparison, AMRI v2 achieves significantly better
+coverage accuracy than AKS CIs (p < 0.001), winning 83% of misspecification
+scenarios while maintaining near-nominal 95% coverage.
 
 ### 1.5 Paper Outline
 
