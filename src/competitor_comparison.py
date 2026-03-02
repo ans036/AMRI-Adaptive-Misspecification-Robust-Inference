@@ -102,22 +102,22 @@ def amri_v1_ci(X, Y, alpha=0.05):
 
 def compute_hc4_se(X, Y):
     """HC4 standard error (Cribari-Neto, 2004) — leverage-adjusted."""
-    n = len(Y)
     Xa = sm.add_constant(X)
     try:
         model = sm.OLS(Y, Xa).fit()
         resid = model.resid
-        hat_matrix = Xa @ np.linalg.inv(Xa.T @ Xa) @ Xa.T
-        h = np.diag(hat_matrix)
+        XtXinv = np.linalg.inv(Xa.T @ Xa)
+        # Compute hat matrix diagonal only — O(np) not O(n^2)
+        h = np.sum(Xa @ XtXinv * Xa, axis=1)
         h_bar = np.mean(h)
 
         # HC4: delta_i = min(4, h_i / h_bar)
         delta = np.minimum(4.0, h / h_bar)
         adj_resid = resid / (1 - h) ** delta
 
-        # Sandwich: (X'X)^{-1} X' diag(adj_resid^2) X (X'X)^{-1}
-        XtXinv = np.linalg.inv(Xa.T @ Xa)
-        meat = Xa.T @ np.diag(adj_resid ** 2) @ Xa
+        # Efficient sandwich without n×n diagonal matrix
+        Xa_w = Xa * adj_resid[:, None]
+        meat = Xa_w.T @ Xa_w
         V = XtXinv @ meat @ XtXinv
 
         theta = model.params[1]
@@ -129,25 +129,25 @@ def compute_hc4_se(X, Y):
 
 def compute_hc5_se(X, Y):
     """HC5 standard error (Cribari-Neto & da Silva, 2011) — max-leverage-aware."""
-    n = len(Y)
     Xa = sm.add_constant(X)
     try:
         model = sm.OLS(Y, Xa).fit()
         resid = model.resid
-        hat_matrix = Xa @ np.linalg.inv(Xa.T @ Xa) @ Xa.T
-        h = np.diag(hat_matrix)
+        XtXinv = np.linalg.inv(Xa.T @ Xa)
+        # Compute hat matrix diagonal only — O(np) not O(n^2)
+        h = np.sum(Xa @ XtXinv * Xa, axis=1)
         h_max = np.max(h)
         h_bar = np.mean(h)
 
         # HC5: alpha_i = min(h_i/h_bar, max(4, k * h_max / h_bar))
-        # where k is a tuning constant (typically k = 0.7)
         k = 0.7
         upper_bound = max(4.0, k * h_max / h_bar)
         alpha_i = np.minimum(h / h_bar, upper_bound)
         adj_resid = resid / np.sqrt((1 - h) ** alpha_i)
 
-        XtXinv = np.linalg.inv(Xa.T @ Xa)
-        meat = Xa.T @ np.diag(adj_resid ** 2) @ Xa
+        # Efficient sandwich
+        Xa_w = Xa * adj_resid[:, None]
+        meat = Xa_w.T @ Xa_w
         V = XtXinv @ meat @ XtXinv
 
         theta = model.params[1]
@@ -313,7 +313,7 @@ DGP_FUNCTIONS = {
 # METHOD RUNNER
 # ============================================================================
 
-def run_method(method_name, X, Y, alpha, boot_seed=None, B_boot=499):
+def run_method(method_name, X, Y, alpha, boot_seed=None, B_boot=299):
     """Run a single method and return (theta, se, ci_low, ci_high)."""
     n = len(Y)
     Xa = sm.add_constant(X)
@@ -341,60 +341,74 @@ def run_method(method_name, X, Y, alpha, boot_seed=None, B_boot=499):
         return theta, se, theta - t_val * se, theta + t_val * se
 
     elif method_name == 'Pairs_Bootstrap':
+        # Vectorized: use direct OLS formula instead of statsmodels
         model = sm.OLS(Y, Xa).fit()
         theta = model.params[1]
         rng_boot = np.random.default_rng(boot_seed)
-        boot_thetas = []
-        for _ in range(B_boot):
+        boot_thetas = np.empty(B_boot)
+        valid_count = 0
+        for b in range(B_boot):
             idx = rng_boot.integers(0, n, size=n)
+            Xb, Yb = Xa[idx], Y[idx]
             try:
-                m = sm.OLS(Y[idx], Xa[idx]).fit()
-                boot_thetas.append(m.params[1])
+                beta = np.linalg.lstsq(Xb, Yb, rcond=None)[0]
+                boot_thetas[valid_count] = beta[1]
+                valid_count += 1
             except Exception:
                 pass
-        if len(boot_thetas) < 100:
+        if valid_count < 100:
             return np.nan, np.nan, np.nan, np.nan
-        boot_thetas = np.array(boot_thetas)
-        return theta, np.std(boot_thetas), np.percentile(boot_thetas, 2.5), np.percentile(boot_thetas, 97.5)
+        bt = boot_thetas[:valid_count]
+        return theta, np.std(bt), np.percentile(bt, 2.5), np.percentile(bt, 97.5)
 
     elif method_name == 'Wild_Bootstrap':
+        # Vectorized wild bootstrap using direct OLS
         model = sm.OLS(Y, Xa).fit()
         theta = model.params[1]
         resid = model.resid
         fitted = model.fittedvalues
         rng_boot = np.random.default_rng(boot_seed)
-        boot_thetas = []
-        for _ in range(B_boot):
-            v = rng_boot.choice([-1, 1], size=n)
-            Y_star = fitted + resid * v
-            try:
-                m = sm.OLS(Y_star, Xa).fit()
-                boot_thetas.append(m.params[1])
-            except Exception:
-                pass
-        if len(boot_thetas) < 100:
-            return np.nan, np.nan, np.nan, np.nan
-        boot_thetas = np.array(boot_thetas)
-        return theta, np.std(boot_thetas), np.percentile(boot_thetas, 2.5), np.percentile(boot_thetas, 97.5)
+        # Generate all Rademacher weights at once
+        V = rng_boot.choice(np.array([-1.0, 1.0]), size=(B_boot, n))
+        Y_stars = fitted[None, :] + resid[None, :] * V  # (B_boot, n)
+        # Solve OLS for all bootstrap samples: beta = (X'X)^{-1} X'Y*
+        XtX_inv = np.linalg.inv(Xa.T @ Xa)
+        XtY_stars = Xa.T @ Y_stars.T  # (p, B_boot)
+        betas = XtX_inv @ XtY_stars  # (p, B_boot)
+        bt = betas[1, :]
+        return theta, np.std(bt), np.percentile(bt, 2.5), np.percentile(bt, 97.5)
 
     elif method_name == 'Bootstrap_t':
+        # Vectorized bootstrap-t: use numpy OLS + HC3 formula
         model = sm.OLS(Y, Xa).fit(cov_type='HC3')
         theta = model.params[1]
         se_base = model.bse[1]
         rng_boot = np.random.default_rng(boot_seed)
-        t_stars = []
-        for _ in range(B_boot):
+        t_stars = np.empty(B_boot)
+        valid_count = 0
+        for b in range(B_boot):
             idx = rng_boot.integers(0, n, size=n)
+            Xb, Yb = Xa[idx], Y[idx]
             try:
-                m = sm.OLS(Y[idx], Xa[idx]).fit(cov_type='HC3')
-                t_stars.append((m.params[1] - theta) / m.bse[1])
+                XtX = Xb.T @ Xb
+                XtX_inv = np.linalg.inv(XtX)
+                beta = XtX_inv @ (Xb.T @ Yb)
+                resid = Yb - Xb @ beta
+                H_diag = np.sum(Xb @ XtX_inv * Xb, axis=1)
+                w_hc3 = resid / np.maximum(1 - H_diag, 0.01)
+                Xb_w = Xb * w_hc3[:, None]
+                hc3_meat = Xb_w.T @ Xb_w
+                V_hc3 = XtX_inv @ hc3_meat @ XtX_inv
+                se_b = np.sqrt(max(V_hc3[1, 1], 1e-20))
+                t_stars[valid_count] = (beta[1] - theta) / se_b
+                valid_count += 1
             except Exception:
                 pass
-        if len(t_stars) < 100:
+        if valid_count < 100:
             return np.nan, np.nan, np.nan, np.nan
-        t_stars = np.array(t_stars)
-        q_lo = np.percentile(t_stars, 2.5)
-        q_hi = np.percentile(t_stars, 97.5)
+        ts = t_stars[:valid_count]
+        q_lo = np.percentile(ts, 2.5)
+        q_hi = np.percentile(ts, 97.5)
         return theta, se_base, theta - q_hi * se_base, theta - q_lo * se_base
 
     elif method_name == 'AKS_Adaptive':
@@ -433,13 +447,19 @@ def run_comparison(dgps=None, deltas=None, n_values=None, methods=None,
                    'AKS_Adaptive', 'AMRI_v1', 'AMRI_v2']
 
     bootstrap_methods = {'Pairs_Bootstrap', 'Wild_Bootstrap', 'Bootstrap_t'}
+    # Bootstrap methods are ~100x more expensive per rep than analytical methods.
+    # Use B_bootstrap for bootstrap methods (standard: 500 gives MC SE ~0.01).
+    B_bootstrap = min(B, 500)
+
     total = len(dgps) * len(deltas) * len(n_values) * len(methods)
     print(f"Total scenarios: {total}")
-    print(f"Total simulation runs: {total * B:,}")
+    print(f"Analytical methods: B={B}, Bootstrap methods: B={B_bootstrap}")
     print()
 
     all_results = []
     scenario_count = 0
+    save_path = RESULTS_DIR / "results_competitor_comparison.csv"
+    t_global = time.time()
 
     for dgp_name in dgps:
         dgp_func = DGP_FUNCTIONS[dgp_name]
@@ -449,26 +469,33 @@ def run_comparison(dgps=None, deltas=None, n_values=None, methods=None,
                 rng_master = np.random.SeedSequence(master_seed + hash(dgp_name) % 10000)
                 seeds = rng_master.spawn(B)
 
+                # Pre-generate data for all B reps
+                data_cache = []
+                for b_idx in range(B):
+                    rng = np.random.default_rng(seeds[b_idx])
+                    X, Y, theta_true = dgp_func(n, delta, rng)
+                    boot_seed = np.random.SeedSequence(
+                        seeds[b_idx].generate_state(1)[0]).generate_state(1)[0]
+                    data_cache.append((X, Y, theta_true, boot_seed))
+
                 for method_name in methods:
                     scenario_count += 1
                     t0 = time.time()
+
+                    is_boot = method_name in bootstrap_methods
+                    B_use = B_bootstrap if is_boot else B
 
                     covers = 0
                     widths = []
                     valid = 0
 
-                    for b in range(B):
-                        rng = np.random.default_rng(seeds[b])
-                        X, Y, theta_true = dgp_func(n, delta, rng)
+                    for b_idx in range(B_use):
+                        X, Y, theta_true, boot_seed = data_cache[b_idx]
 
                         try:
-                            boot_seed = None
-                            if method_name in bootstrap_methods:
-                                boot_seed = np.random.SeedSequence(
-                                    seeds[b].generate_state(1)[0]).generate_state(1)[0]
-
+                            bs = boot_seed if is_boot else None
                             theta, se, ci_lo, ci_hi = run_method(
-                                method_name, X, Y, alpha, boot_seed=boot_seed)
+                                method_name, X, Y, alpha, boot_seed=bs)
 
                             if not np.isnan(ci_lo):
                                 covers += int(ci_lo <= theta_true <= ci_hi)
@@ -477,7 +504,7 @@ def run_comparison(dgps=None, deltas=None, n_values=None, methods=None,
                         except Exception:
                             pass
 
-                    if valid < B * 0.3:
+                    if valid < B_use * 0.3:
                         continue
 
                     cov = covers / valid
@@ -496,10 +523,17 @@ def run_comparison(dgps=None, deltas=None, n_values=None, methods=None,
                         'valid_reps': valid,
                     })
 
-                    if scenario_count % 20 == 0:
-                        pct = scenario_count / total * 100
-                        print(f"  [{pct:5.1f}%] {dgp_name}, d={delta}, n={n}, {method_name}: "
-                              f"cov={cov:.4f}, width={avg_width:.4f} ({elapsed:.1f}s)")
+                    pct = scenario_count / total * 100
+                    elapsed_total = time.time() - t_global
+                    rate = scenario_count / elapsed_total if elapsed_total > 0 else 0
+                    eta = (total - scenario_count) / rate / 60 if rate > 0 else 0
+                    print(f"  [{pct:5.1f}%] {dgp_name} d={delta} n={n} {method_name}: "
+                          f"cov={cov:.4f} w={avg_width:.4f} B={B_use} "
+                          f"({elapsed:.1f}s) ETA={eta:.0f}min",
+                          flush=True)
+
+                # Save incrementally after each (dgp, delta, n) group
+                pd.DataFrame(all_results).to_csv(save_path, index=False)
 
     df = pd.DataFrame(all_results)
     return df
@@ -600,7 +634,7 @@ if __name__ == '__main__':
             B=500,
         )
     else:
-        print("FULL COMPARISON")
+        print("FULL COMPARISON (B=2000, B_boot=199)")
         df = run_comparison(B=2000)
 
     # Save

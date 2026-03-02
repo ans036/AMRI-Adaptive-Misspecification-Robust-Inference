@@ -1,0 +1,634 @@
+================================================================================
+REAL DATA VALIDATION: AMRI on ACTUAL Real-World Datasets
+================================================================================
+Bootstrap ground truth: 50,000 resamples per dataset
+
+Loading sklearn datasets...
+Loading statsmodels datasets...
+Loading OpenML datasets...
+Loading rdatasets...
+
+Loaded 61 real-world dataset pairs.
+
+================================================================================
+RESULTS
+================================================================================
+
+  California_Housing (MedInc->HousePrice, n=20640)
+    SE ratio=1.154, threshold=1.014, AMRI v1=ROBUST, v2 w=1.000
+    True SE (bootstrap 50K): 0.003553
+    Naive SE:    0.003068 (err=13.7%), boot_cov=0.9104
+    HC3 SE:      0.003540 (err=0.4%), boot_cov=0.9500
+    AMRI v1 SE:  0.003717 (err=4.6%), boot_cov=0.9604
+    AMRI v2 SE:  0.003540 (err=0.4%), boot_cov=0.9500
+    Closest to 0.95 coverage: HC3 (0.0000 away)
+
+  California_Rooms (AveRooms->HousePrice, n=20640)
+    SE ratio=4.716, threshold=1.014, AMRI v1=ROBUST, v2 w=1.000
+    True SE (bootstrap 50K): 0.013876
+    Naive SE:    0.003209 (err=76.9%), boot_cov=0.3551
+    HC3 SE:      0.015134 (err=9.1%), boot_cov=0.9576
+    AMRI v1 SE:  0.015891 (err=14.5%), boot_cov=0.9647
+    AMRI v2 SE:  0.015134 (err=9.1%), boot_cov=0.9576
+    Closest to 0.95 coverage: HC3 (0.0076 away)
+
+  California_Age (HouseAge->HousePrice, n=20640)
+    SE ratio=1.035, threshold=1.014, AMRI v1=ROBUST, v2 w=1.000
+    True SE (bootstrap 50K): 0.000656
+    Naive SE:    0.000635 (err=3.2%), boot_cov=0.9425
+    HC3 SE:      0.000657 (err=0.2%), boot_cov=0.9510
+    AMRI v1 SE:  0.000690 (err=5.2%), boot_cov=0.9612
+    AMRI v2 SE:  0.000657 (err=0.2%), boot_cov=0.9510
+    Closest to 0.95 coverage: HC3 (0.0010 away)
+
+  Diabetes_BMI (BMI->DiseaseProgress, n=442)
+    SE ratio=0.917, threshold=1.095, AMRI v1=EFFICIENT, v2 w=0.813
+    True SE (bootstrap 50K): 57.395680
+    Naive SE:    62.515122 (err=8.9%), boot_cov=0.9663
+    HC3 SE:      57.350486 (err=0.1%), boot_cov=0.9490
+    AMRI v1 SE:  62.515122 (err=8.9%), boot_cov=0.9663
+    AMRI v2 SE:  58.317192 (err=1.6%), boot_cov=0.9529
+    Closest to 0.95 coverage: HC3 (0.0010 away)
+
+  Diabetes_BP (BloodPressure->DiseaseProgress, n=442)
+    SE ratio=0.956, threshold=1.095, AMRI v1=EFFICIENT, v2 w=0.000
+    True SE (bootstrap 50K): 66.116486
+    Naive SE:    69.251819 (err=4.7%), boot_cov=0.9601
+    HC3 SE:      66.174072 (err=0.1%), boot_cov=0.9507
+    AMRI v1 SE:  69.251819 (err=4.7%), boot_cov=0.9601
+    AMRI v2 SE:  69.251819 (err=4.7%), boot_cov=0.9601
+    Closest to 0.95 coverage: HC3 (0.0007 away)
+
+  Diabetes_S5 (S5_ltg->DiseaseProgress, n=442)
+    SE ratio=0.967, threshold=1.095, AMRI v1=EFFICIENT, v2 w=0.000
+    True SE (bootstrap 50K): 61.404318
+    Naive SE:    63.634279 (err=3.6%), boot_cov=0.9590
+    HC3 SE:      61.557406 (err=0.2%), boot_cov=0.9521
+    AMRI v1 SE:  63.634279 (err=3.6%), boot_cov=0.9590
+    AMRI v2 SE:  63.634279 (err=3.6%), boot_cov=0.9590
+    Closest to 0.95 coverage: HC3 (0.0021 away)
+
+  Duncan_Prestige (Income->Prestige, n=45)
+    SE ratio=0.991, threshold=1.298, AMRI v1=EFFICIENT, v2 w=0.000
+    True SE (bootstrap 50K): 0.103411
+    Naive SE:    0.107369 (err=3.8%), boot_cov=0.9656
+    HC3 SE:      0.106442 (err=2.9%), boot_cov=0.9641
+    AMRI v1 SE:  0.107369 (err=3.8%), boot_cov=0.9656
+    AMRI v2 SE:  0.107369 (err=3.8%), boot_cov=0.9656
+    Closest to 0.95 coverage: HC3 (0.0141 away)
+
+  Fair_Affairs (MarriageRating->Affairs, n=6366)
+    SE ratio=1.181, threshold=1.025, AMRI v1=ROBUST, v2 w=1.000
+    True SE (bootstrap 50K): 0.033259
+    Naive SE:    0.028269 (err=15.0%), boot_cov=0.9049
+    HC3 SE:      0.033391 (err=0.4%), boot_cov=0.9505
+    AMRI v1 SE:  0.035061 (err=5.4%), boot_cov=0.9603
+    AMRI v2 SE:  0.033391 (err=0.4%), boot_cov=0.9505
+    Closest to 0.95 coverage: HC3 (0.0005 away)
+
+  Fair_Age (Age->Affairs, n=6366)
+    SE ratio=0.895, threshold=1.025, AMRI v1=ROBUST, v2 w=1.000
+    True SE (bootstrap 50K): 0.003596
+    Naive SE:    0.004017 (err=11.7%), boot_cov=0.9709
+    HC3 SE:      0.003595 (err=0.0%), boot_cov=0.9493
+    AMRI v1 SE:  0.003775 (err=5.0%), boot_cov=0.9601
+    AMRI v2 SE:  0.003595 (err=0.0%), boot_cov=0.9493
+    Closest to 0.95 coverage: HC3 (0.0007 away)
+
+  Star98_Math (Feature1->MathScore, n=303)
+    SE ratio=18.157, threshold=1.115, AMRI v1=ROBUST, v2 w=1.000
+    True SE (bootstrap 50K): 0.093173
+    Naive SE:    0.009903 (err=89.4%), boot_cov=0.6242
+    HC3 SE:      0.179816 (err=93.0%), boot_cov=0.9998
+    AMRI v1 SE:  0.188807 (err=102.6%), boot_cov=0.9999
+    AMRI v2 SE:  0.179816 (err=93.0%), boot_cov=0.9998
+    Closest to 0.95 coverage: HC3 (0.0498 away)
+
+  Abalone_Length (Length->Rings, n=4177)
+    SE ratio=0.832, threshold=1.031, AMRI v1=ROBUST, v2 w=1.000
+    True SE (bootstrap 50K): 0.287912
+    Naive SE:    0.345157 (err=19.9%), boot_cov=0.9815
+    HC3 SE:      0.287104 (err=0.3%), boot_cov=0.9504
+    AMRI v1 SE:  0.301459 (err=4.7%), boot_cov=0.9601
+    AMRI v2 SE:  0.287104 (err=0.3%), boot_cov=0.9504
+    Closest to 0.95 coverage: HC3 (0.0004 away)
+
+  Abalone_ShellWt (ShellWeight->Rings, n=4177)
+    SE ratio=1.133, threshold=1.031, AMRI v1=ROBUST, v2 w=1.000
+    True SE (bootstrap 50K): 0.315954
+    Naive SE:    0.279082 (err=11.7%), boot_cov=0.9167
+    HC3 SE:      0.316189 (err=0.1%), boot_cov=0.9506
+    AMRI v1 SE:  0.331998 (err=5.1%), boot_cov=0.9607
+    AMRI v2 SE:  0.316189 (err=0.1%), boot_cov=0.9506
+    Closest to 0.95 coverage: HC3 (0.0006 away)
+
+  Abalone_Diameter (Diameter->Rings, n=4177)
+    SE ratio=0.848, threshold=1.031, AMRI v1=ROBUST, v2 w=1.000
+    True SE (bootstrap 50K): 0.350338
+    Naive SE:    0.411495 (err=17.5%), boot_cov=0.9789
+    HC3 SE:      0.349048 (err=0.4%), boot_cov=0.9499
+    AMRI v1 SE:  0.366501 (err=4.6%), boot_cov=0.9599
+    AMRI v2 SE:  0.349048 (err=0.4%), boot_cov=0.9499
+    Closest to 0.95 coverage: HC3 (0.0001 away)
+
+  AutoMPG_HP (Horsepower->MPG, n=392)
+    SE ratio=1.163, threshold=1.101, AMRI v1=ROBUST, v2 w=1.000
+    True SE (bootstrap 50K): 0.007447
+    Naive SE:    0.006446 (err=13.4%), boot_cov=0.9109
+    HC3 SE:      0.007494 (err=0.6%), boot_cov=0.9514
+    AMRI v1 SE:  0.007869 (err=5.7%), boot_cov=0.9612
+    AMRI v2 SE:  0.007494 (err=0.6%), boot_cov=0.9514
+    Closest to 0.95 coverage: HC3 (0.0014 away)
+
+  AutoMPG_Weight (Weight->MPG, n=398)
+    SE ratio=0.915, threshold=1.100, AMRI v1=EFFICIENT, v2 w=0.778
+    True SE (bootstrap 50K): 0.000234
+    Naive SE:    0.000257 (err=9.9%), boot_cov=0.9685
+    HC3 SE:      0.000236 (err=0.5%), boot_cov=0.9508
+    AMRI v1 SE:  0.000257 (err=9.9%), boot_cov=0.9685
+    AMRI v2 SE:  0.000240 (err=2.6%), boot_cov=0.9553
+    Closest to 0.95 coverage: HC3 (0.0008 away)
+
+  Wine_Alcohol (Alcohol->Quality, n=1599)
+    SE ratio=1.085, threshold=1.050, AMRI v1=ROBUST, v2 w=1.000
+    True SE (bootstrap 50K): 0.018137
+    Naive SE:    0.016675 (err=8.1%), boot_cov=0.9293
+    HC3 SE:      0.018086 (err=0.3%), boot_cov=0.9489
+    AMRI v1 SE:  0.018990 (err=4.7%), boot_cov=0.9595
+    AMRI v2 SE:  0.018086 (err=0.3%), boot_cov=0.9489
+    Closest to 0.95 coverage: HC3 (0.0011 away)
+
+  Wine_Acidity (VolatileAcidity->Quality, n=1599)
+    SE ratio=1.062, threshold=1.050, AMRI v1=ROBUST, v2 w=1.000
+    True SE (bootstrap 50K): 0.109924
+    Naive SE:    0.103894 (err=5.5%), boot_cov=0.9362
+    HC3 SE:      0.110385 (err=0.4%), boot_cov=0.9510
+    AMRI v1 SE:  0.115904 (err=5.4%), boot_cov=0.9619
+    AMRI v2 SE:  0.110385 (err=0.4%), boot_cov=0.9510
+    Closest to 0.95 coverage: HC3 (0.0010 away)
+
+  mtcars_HP (Horsepower->MPG, n=32)
+    SE ratio=1.641, threshold=1.354, AMRI v1=ROBUST, v2 w=1.000
+    True SE (bootstrap 50K): 0.013926
+    Naive SE:    0.010119 (err=27.3%), boot_cov=0.8650
+    HC3 SE:      0.016602 (err=19.2%), boot_cov=0.9791
+    AMRI v1 SE:  0.017432 (err=25.2%), boot_cov=0.9838
+    AMRI v2 SE:  0.016602 (err=19.2%), boot_cov=0.9791
+    Closest to 0.95 coverage: HC3 (0.0291 away)
+
+  mtcars_Weight (Weight->MPG, n=32)
+    SE ratio=1.320, threshold=1.354, AMRI v1=EFFICIENT, v2 w=0.571
+    True SE (bootstrap 50K): 0.707028
+    Naive SE:    0.559101 (err=20.9%), boot_cov=0.8972
+    HC3 SE:      0.738106 (err=4.4%), boot_cov=0.9596
+    AMRI v1 SE:  0.559101 (err=20.9%), boot_cov=0.8972
+    AMRI v2 SE:  0.661355 (err=6.5%), boot_cov=0.9407
+    Closest to 0.95 coverage: HC3 (0.0096 away)
+
+  mtcars_Disp (Displacement->MPG, n=32)
+    SE ratio=1.145, threshold=1.354, AMRI v1=EFFICIENT, v2 w=0.000
+    True SE (bootstrap 50K): 0.005228
+    Naive SE:    0.004712 (err=9.9%), boot_cov=0.9330
+    HC3 SE:      0.005397 (err=3.2%), boot_cov=0.9630
+    AMRI v1 SE:  0.004712 (err=9.9%), boot_cov=0.9330
+    AMRI v2 SE:  0.004712 (err=9.9%), boot_cov=0.9330
+    Closest to 0.95 coverage: HC3 (0.0130 away)
+
+  Iris_Sepal (SepalLength->SepalWidth, n=150)
+    SE ratio=0.949, threshold=1.163, AMRI v1=EFFICIENT, v2 w=0.000
+    True SE (bootstrap 50K): 0.040058
+    Naive SE:    0.042967 (err=7.3%), boot_cov=0.9661
+    HC3 SE:      0.040768 (err=1.8%), boot_cov=0.9551
+    AMRI v1 SE:  0.042967 (err=7.3%), boot_cov=0.9661
+    AMRI v2 SE:  0.042967 (err=7.3%), boot_cov=0.9661
+    Closest to 0.95 coverage: HC3 (0.0051 away)
+
+  Faithful (EruptionDuration->WaitingTime, n=272)
+    SE ratio=0.961, threshold=1.121, AMRI v1=EFFICIENT, v2 w=0.000
+    True SE (bootstrap 50K): 0.300335
+    Naive SE:    0.314753 (err=4.8%), boot_cov=0.9608
+    HC3 SE:      0.302476 (err=0.7%), boot_cov=0.9515
+    AMRI v1 SE:  0.314753 (err=4.8%), boot_cov=0.9608
+    AMRI v2 SE:  0.314753 (err=4.8%), boot_cov=0.9608
+    Closest to 0.95 coverage: HC3 (0.0015 away)
+
+  Swiss_Education (Education->Fertility, n=47)
+    SE ratio=0.867, threshold=1.292, AMRI v1=EFFICIENT, v2 w=0.000
+    True SE (bootstrap 50K): 0.145439
+    Naive SE:    0.144845 (err=0.4%), boot_cov=0.9431
+    HC3 SE:      0.125555 (err=13.7%), boot_cov=0.9143
+    AMRI v1 SE:  0.144845 (err=0.4%), boot_cov=0.9431
+    AMRI v2 SE:  0.144845 (err=0.4%), boot_cov=0.9431
+    Closest to 0.95 coverage: Naive (0.0069 away)
+
+  Swiss_Agriculture (Agriculture->Fertility, n=47)
+    SE ratio=1.129, threshold=1.292, AMRI v1=EFFICIENT, v2 w=0.000
+    True SE (bootstrap 50K): 0.080731
+    Naive SE:    0.076712 (err=5.0%), boot_cov=0.9441
+    HC3 SE:      0.086615 (err=7.3%), boot_cov=0.9698
+    AMRI v1 SE:  0.076712 (err=5.0%), boot_cov=0.9441
+    AMRI v2 SE:  0.076712 (err=5.0%), boot_cov=0.9441
+    Closest to 0.95 coverage: Naive (0.0059 away)
+
+  Trees_Girth (Girth->Volume, n=31)
+    SE ratio=1.499, threshold=1.359, AMRI v1=ROBUST, v2 w=1.000
+    True SE (bootstrap 50K): 0.323712
+    Naive SE:    0.247377 (err=23.6%), boot_cov=0.8828
+    HC3 SE:      0.370723 (err=14.5%), boot_cov=0.9791
+    AMRI v1 SE:  0.389259 (err=20.2%), boot_cov=0.9842
+    AMRI v2 SE:  0.370723 (err=14.5%), boot_cov=0.9791
+    Closest to 0.95 coverage: HC3 (0.0291 away)
+
+  AirQuality_Temp (Temperature->Ozone, n=116)
+    SE ratio=0.797, threshold=1.186, AMRI v1=ROBUST, v2 w=1.000
+    True SE (bootstrap 50K): 0.183903
+    Naive SE:    0.233132 (err=26.8%), boot_cov=0.9863
+    HC3 SE:      0.185840 (err=1.1%), boot_cov=0.9548
+    AMRI v1 SE:  0.195133 (err=6.1%), boot_cov=0.9638
+    AMRI v2 SE:  0.185840 (err=1.1%), boot_cov=0.9548
+    Closest to 0.95 coverage: HC3 (0.0048 away)
+
+  AirQuality_Wind (Wind->Ozone, n=116)
+    SE ratio=1.240, threshold=1.186, AMRI v1=ROBUST, v2 w=1.000
+    True SE (bootstrap 50K): 0.822982
+    Naive SE:    0.690402 (err=16.1%), boot_cov=0.9044
+    HC3 SE:      0.856397 (err=4.1%), boot_cov=0.9604
+    AMRI v1 SE:  0.899217 (err=9.3%), boot_cov=0.9693
+    AMRI v2 SE:  0.856397 (err=4.1%), boot_cov=0.9604
+    Closest to 0.95 coverage: HC3 (0.0104 away)
+
+  Auto_HP (Horsepower->MPG, n=392)
+    SE ratio=1.163, threshold=1.101, AMRI v1=ROBUST, v2 w=1.000
+    True SE (bootstrap 50K): 0.007447
+    Naive SE:    0.006446 (err=13.4%), boot_cov=0.9109
+    HC3 SE:      0.007494 (err=0.6%), boot_cov=0.9514
+    AMRI v1 SE:  0.007869 (err=5.7%), boot_cov=0.9612
+    AMRI v2 SE:  0.007494 (err=0.6%), boot_cov=0.9514
+    Closest to 0.95 coverage: HC3 (0.0014 away)
+
+  Auto_Weight (Weight->MPG, n=392)
+    SE ratio=0.910, threshold=1.101, AMRI v1=EFFICIENT, v2 w=0.866
+    True SE (bootstrap 50K): 0.000235
+    Naive SE:    0.000258 (err=9.9%), boot_cov=0.9706
+    HC3 SE:      0.000235 (err=0.0%), boot_cov=0.9517
+    AMRI v1 SE:  0.000258 (err=9.9%), boot_cov=0.9706
+    AMRI v2 SE:  0.000238 (err=1.4%), boot_cov=0.9548
+    Closest to 0.95 coverage: HC3 (0.0017 away)
+
+  Auto_Displacement (Displacement->MPG, n=392)
+    SE ratio=0.995, threshold=1.101, AMRI v1=EFFICIENT, v2 w=0.000
+    True SE (bootstrap 50K): 0.002223
+    Naive SE:    0.002240 (err=0.8%), boot_cov=0.9538
+    HC3 SE:      0.002228 (err=0.2%), boot_cov=0.9526
+    AMRI v1 SE:  0.002240 (err=0.8%), boot_cov=0.9538
+    AMRI v2 SE:  0.002240 (err=0.8%), boot_cov=0.9538
+    Closest to 0.95 coverage: HC3 (0.0026 away)
+
+  Boston_Rooms (AvgRooms->MedianValue, n=506)
+    SE ratio=1.606, threshold=1.089, AMRI v1=ROBUST, v2 w=1.000
+    True SE (bootstrap 50K): 0.662303
+    Naive SE:    0.419027 (err=36.7%), boot_cov=0.7863
+    HC3 SE:      0.673019 (err=1.6%), boot_cov=0.9546
+    AMRI v1 SE:  0.706670 (err=6.7%), boot_cov=0.9647
+    AMRI v2 SE:  0.673019 (err=1.6%), boot_cov=0.9546
+    Closest to 0.95 coverage: HC3 (0.0046 away)
+
+  Boston_LSTAT (LowerStatus%->MedianValue, n=506)
+    SE ratio=1.293, threshold=1.089, AMRI v1=ROBUST, v2 w=1.000
+    True SE (bootstrap 50K): 0.049682
+    Naive SE:    0.038733 (err=22.0%), boot_cov=0.8744
+    HC3 SE:      0.050080 (err=0.8%), boot_cov=0.9526
+    AMRI v1 SE:  0.052584 (err=5.8%), boot_cov=0.9628
+    AMRI v2 SE:  0.050080 (err=0.8%), boot_cov=0.9526
+    Closest to 0.95 coverage: HC3 (0.0026 away)
+
+  Boston_Crime (CrimeRate->MedianValue, n=506)
+    SE ratio=1.849, threshold=1.089, AMRI v1=ROBUST, v2 w=1.000
+    True SE (bootstrap 50K): 0.075715
+    Naive SE:    0.043890 (err=42.0%), boot_cov=0.7803
+    HC3 SE:      0.081134 (err=7.2%), boot_cov=0.9492
+    AMRI v1 SE:  0.085190 (err=12.5%), boot_cov=0.9565
+    AMRI v2 SE:  0.081134 (err=7.2%), boot_cov=0.9492
+    Closest to 0.95 coverage: HC3 (0.0008 away)
+
+  Cats_BodyWt (BodyWeight->HeartWeight, n=144)
+    SE ratio=1.270, threshold=1.167, AMRI v1=ROBUST, v2 w=1.000
+    True SE (bootstrap 50K): 0.307543
+    Naive SE:    0.250261 (err=18.6%), boot_cov=0.8914
+    HC3 SE:      0.317790 (err=3.3%), boot_cov=0.9578
+    AMRI v1 SE:  0.333680 (err=8.5%), boot_cov=0.9676
+    AMRI v2 SE:  0.317790 (err=3.3%), boot_cov=0.9578
+    Closest to 0.95 coverage: HC3 (0.0078 away)
+
+  Prestige_Income (Income->Prestige, n=102)
+    SE ratio=1.779, threshold=1.198, AMRI v1=ROBUST, v2 w=1.000
+    True SE (bootstrap 50K): 0.000458
+    Naive SE:    0.000283 (err=38.1%), boot_cov=0.8012
+    HC3 SE:      0.000504 (err=10.2%), boot_cov=0.9554
+    AMRI v1 SE:  0.000529 (err=15.7%), boot_cov=0.9629
+    AMRI v2 SE:  0.000504 (err=10.2%), boot_cov=0.9554
+    Closest to 0.95 coverage: HC3 (0.0054 away)
+
+  Prestige_Education (Education->Prestige, n=102)
+    SE ratio=0.939, threshold=1.198, AMRI v1=EFFICIENT, v2 w=0.000
+    True SE (bootstrap 50K): 0.306588
+    Naive SE:    0.331988 (err=8.3%), boot_cov=0.9668
+    HC3 SE:      0.311730 (err=1.7%), boot_cov=0.9560
+    AMRI v1 SE:  0.331988 (err=8.3%), boot_cov=0.9668
+    AMRI v2 SE:  0.331988 (err=8.3%), boot_cov=0.9668
+    Closest to 0.95 coverage: HC3 (0.0060 away)
+
+  Diamonds_Carat (Carat->Price, n=2000)
+    SE ratio=1.918, threshold=1.045, AMRI v1=ROBUST, v2 w=1.000
+    True SE (bootstrap 50K): 139.383028
+    Naive SE:    73.994371 (err=46.9%), boot_cov=0.7030
+    HC3 SE:      141.886428 (err=1.8%), boot_cov=0.9541
+    AMRI v1 SE:  148.980750 (err=6.9%), boot_cov=0.9638
+    AMRI v2 SE:  141.886428 (err=1.8%), boot_cov=0.9541
+    Closest to 0.95 coverage: HC3 (0.0041 away)
+
+  Diamonds_Depth (Depth->Price, n=2000)
+    SE ratio=0.930, threshold=1.045, AMRI v1=ROBUST, v2 w=1.000
+    True SE (bootstrap 50K): 58.822388
+    Naive SE:    63.019497 (err=7.1%), boot_cov=0.9643
+    HC3 SE:      58.599817 (err=0.4%), boot_cov=0.9489
+    AMRI v1 SE:  61.529808 (err=4.6%), boot_cov=0.9598
+    AMRI v2 SE:  58.599817 (err=0.4%), boot_cov=0.9489
+    Closest to 0.95 coverage: HC3 (0.0011 away)
+
+  Midwest_Poverty (PovertyRate->CollegeRate, n=437)
+    SE ratio=1.206, threshold=1.096, AMRI v1=ROBUST, v2 w=1.000
+    True SE (bootstrap 50K): 0.067546
+    Naive SE:    0.055941 (err=17.2%), boot_cov=0.8970
+    HC3 SE:      0.067463 (err=0.1%), boot_cov=0.9502
+    AMRI v1 SE:  0.070836 (err=4.9%), boot_cov=0.9607
+    AMRI v2 SE:  0.067463 (err=0.1%), boot_cov=0.9502
+    Closest to 0.95 coverage: HC3 (0.0002 away)
+
+  Midwest_PopDens (PopDensity->CollegeRate, n=437)
+    SE ratio=2.440, threshold=1.096, AMRI v1=ROBUST, v2 w=1.000
+    True SE (bootstrap 50K): 0.000095
+    Naive SE:    0.000037 (err=61.2%), boot_cov=0.6809
+    HC3 SE:      0.000090 (err=5.3%), boot_cov=0.9288
+    AMRI v1 SE:  0.000094 (err=0.6%), boot_cov=0.9352
+    AMRI v2 SE:  0.000090 (err=5.3%), boot_cov=0.9288
+    Closest to 0.95 coverage: AMRI (0.0148 away)
+
+  Economics_Unemp (Unemployment->PersonalConsumption, n=574)
+    SE ratio=0.724, threshold=1.083, AMRI v1=ROBUST, v2 w=1.000
+    True SE (bootstrap 50K): 0.032486
+    Naive SE:    0.044408 (err=36.7%), boot_cov=0.9925
+    HC3 SE:      0.032163 (err=1.0%), boot_cov=0.9467
+    AMRI v1 SE:  0.033771 (err=4.0%), boot_cov=0.9579
+    AMRI v2 SE:  0.032163 (err=1.0%), boot_cov=0.9467
+    Closest to 0.95 coverage: HC3 (0.0033 away)
+
+  MPG_Displ (EngineDisplacement->HighwayMPG, n=234)
+    SE ratio=1.294, threshold=1.131, AMRI v1=ROBUST, v2 w=1.000
+    True SE (bootstrap 50K): 0.247344
+    Naive SE:    0.194514 (err=21.4%), boot_cov=0.8792
+    HC3 SE:      0.251750 (err=1.8%), boot_cov=0.9542
+    AMRI v1 SE:  0.264338 (err=6.9%), boot_cov=0.9640
+    AMRI v2 SE:  0.251750 (err=1.8%), boot_cov=0.9542
+    Closest to 0.95 coverage: HC3 (0.0042 away)
+
+  MPG_Cty (CityMPG->HighwayMPG, n=234)
+    SE ratio=1.121, threshold=1.131, AMRI v1=EFFICIENT, v2 w=0.743
+    True SE (bootstrap 50K): 0.029085
+    Naive SE:    0.026973 (err=7.3%), boot_cov=0.9323
+    HC3 SE:      0.030228 (err=3.9%), boot_cov=0.9593
+    AMRI v1 SE:  0.026973 (err=7.3%), boot_cov=0.9323
+    AMRI v2 SE:  0.029390 (err=1.1%), boot_cov=0.9531
+    Closest to 0.95 coverage: HC3 (0.0093 away)
+
+  Wage1_Educ (Education->HourlyWage, n=526)
+    SE ratio=1.162, threshold=1.087, AMRI v1=ROBUST, v2 w=1.000
+    True SE (bootstrap 50K): 0.061379
+    Naive SE:    0.053248 (err=13.2%), boot_cov=0.9139
+    HC3 SE:      0.061863 (err=0.8%), boot_cov=0.9531
+    AMRI v1 SE:  0.064956 (err=5.8%), boot_cov=0.9622
+    AMRI v2 SE:  0.061863 (err=0.8%), boot_cov=0.9531
+    Closest to 0.95 coverage: HC3 (0.0031 away)
+
+  Wage1_Exper (Experience->HourlyWage, n=526)
+    SE ratio=0.918, threshold=1.087, AMRI v1=ROBUST, v2 w=0.965
+    True SE (bootstrap 50K): 0.010832
+    Naive SE:    0.011811 (err=9.0%), boot_cov=0.9668
+    HC3 SE:      0.010841 (err=0.1%), boot_cov=0.9504
+    AMRI v1 SE:  0.011383 (err=5.1%), boot_cov=0.9600
+    AMRI v2 SE:  0.010876 (err=0.4%), boot_cov=0.9509
+    Closest to 0.95 coverage: HC3 (0.0004 away)
+
+  Wage2_IQ (IQ->MonthlyWage, n=935)
+    SE ratio=1.028, threshold=1.065, AMRI v1=EFFICIENT, v2 w=0.000
+    True SE (bootstrap 50K): 0.860441
+    Naive SE:    0.836395 (err=2.8%), boot_cov=0.9440
+    HC3 SE:      0.859966 (err=0.1%), boot_cov=0.9504
+    AMRI v1 SE:  0.836395 (err=2.8%), boot_cov=0.9440
+    AMRI v2 SE:  0.836395 (err=2.8%), boot_cov=0.9440
+    Closest to 0.95 coverage: HC3 (0.0004 away)
+
+  Wage2_Educ (Education->MonthlyWage, n=935)
+    SE ratio=1.084, threshold=1.065, AMRI v1=ROBUST, v2 w=1.000
+    True SE (bootstrap 50K): 6.174737
+    Naive SE:    5.694982 (err=7.8%), boot_cov=0.9303
+    HC3 SE:      6.174782 (err=0.0%), boot_cov=0.9518
+    AMRI v1 SE:  6.483521 (err=5.0%), boot_cov=0.9610
+    AMRI v2 SE:  6.174782 (err=0.0%), boot_cov=0.9518
+    Closest to 0.95 coverage: HC3 (0.0018 away)
+
+  HPrice_Sqrft (SqFt->HousePrice, n=88)
+    SE ratio=1.787, threshold=1.213, AMRI v1=ROBUST, v2 w=1.000
+    True SE (bootstrap 50K): 0.019795
+    Naive SE:    0.011817 (err=40.3%), boot_cov=0.7630
+    HC3 SE:      0.021111 (err=6.6%), boot_cov=0.9671
+    AMRI v1 SE:  0.022166 (err=12.0%), boot_cov=0.9752
+    AMRI v2 SE:  0.021111 (err=6.6%), boot_cov=0.9671
+    Closest to 0.95 coverage: HC3 (0.0171 away)
+
+  HPrice_Lotsize (LotSize->HousePrice, n=88)
+    SE ratio=11.631, threshold=1.213, AMRI v1=ROBUST, v2 w=1.000
+    True SE (bootstrap 50K): 0.006223
+    Naive SE:    0.001021 (err=83.6%), boot_cov=0.5273
+    HC3 SE:      0.011874 (err=90.8%), boot_cov=1.0000
+    AMRI v1 SE:  0.012468 (err=100.4%), boot_cov=1.0000
+    AMRI v2 SE:  0.011874 (err=90.8%), boot_cov=1.0000
+    Closest to 0.95 coverage: HC3 (0.0500 away)
+
+  CEO_Sales (FirmSales->CEOSalary, n=209)
+    SE ratio=1.103, threshold=1.138, AMRI v1=EFFICIENT, v2 w=0.412
+    True SE (bootstrap 50K): 0.008175
+    Naive SE:    0.008906 (err=8.9%), boot_cov=0.9521
+    HC3 SE:      0.009820 (err=20.1%), boot_cov=0.9666
+    AMRI v1 SE:  0.008906 (err=8.9%), boot_cov=0.9521
+    AMRI v2 SE:  0.009282 (err=13.6%), boot_cov=0.9589
+    Closest to 0.95 coverage: Naive (0.0021 away)
+
+  CEO_ROE (ROE->CEOSalary, n=209)
+    SE ratio=0.620, threshold=1.138, AMRI v1=ROBUST, v2 w=1.000
+    True SE (bootstrap 50K): 7.168437
+    Naive SE:    11.123251 (err=55.2%), boot_cov=0.9945
+    HC3 SE:      6.899434 (err=3.8%), boot_cov=0.9404
+    AMRI v1 SE:  7.244406 (err=1.1%), boot_cov=0.9502
+    AMRI v2 SE:  6.899434 (err=3.8%), boot_cov=0.9404
+    Closest to 0.95 coverage: AMRI (0.0002 away)
+
+  RDChem_Sales (Sales->RDSpending, n=32)
+    SE ratio=6.346, threshold=1.354, AMRI v1=ROBUST, v2 w=1.000
+    True SE (bootstrap 50K): 0.008916
+    Naive SE:    0.002449 (err=72.5%), boot_cov=0.6433
+    HC3 SE:      0.015539 (err=74.3%), boot_cov=0.9986
+    AMRI v1 SE:  0.016316 (err=83.0%), boot_cov=0.9992
+    AMRI v2 SE:  0.015539 (err=74.3%), boot_cov=0.9986
+    Closest to 0.95 coverage: HC3 (0.0486 away)
+
+  MEAP_Expend (ExpenditurePerPupil->Math4thGrade, n=1823)
+    SE ratio=1.124, threshold=1.047, AMRI v1=ROBUST, v2 w=1.000
+    True SE (bootstrap 50K): 0.000483
+    Naive SE:    0.000428 (err=11.3%), boot_cov=0.9193
+    HC3 SE:      0.000481 (err=0.3%), boot_cov=0.9503
+    AMRI v1 SE:  0.000505 (err=4.6%), boot_cov=0.9608
+    AMRI v2 SE:  0.000481 (err=0.3%), boot_cov=0.9503
+    Closest to 0.95 coverage: HC3 (0.0003 away)
+
+  Crime_Density (PopDensity->CrimeRate, n=630)
+    SE ratio=0.867, threshold=1.080, AMRI v1=ROBUST, v2 w=1.000
+    True SE (bootstrap 50K): 0.000315
+    Naive SE:    0.000362 (err=14.9%), boot_cov=0.9748
+    HC3 SE:      0.000314 (err=0.3%), boot_cov=0.9487
+    AMRI v1 SE:  0.000329 (err=4.7%), boot_cov=0.9592
+    AMRI v2 SE:  0.000314 (err=0.3%), boot_cov=0.9487
+    Closest to 0.95 coverage: HC3 (0.0013 away)
+
+  Crime_Wage (ConstructionWage->CrimeRate, n=630)
+    SE ratio=3.428, threshold=1.080, AMRI v1=ROBUST, v2 w=1.000
+    True SE (bootstrap 50K): 0.000033
+    Naive SE:    0.000006 (err=81.9%), boot_cov=0.6700
+    HC3 SE:      0.000020 (err=38.0%), boot_cov=0.8646
+    AMRI v1 SE:  0.000021 (err=34.9%), boot_cov=0.8647
+    AMRI v2 SE:  0.000020 (err=38.0%), boot_cov=0.8646
+    Closest to 0.95 coverage: AMRI (0.0853 away)
+
+  Gasoline_Income (LogIncome->LogGasPerCar, n=342)
+    SE ratio=1.640, threshold=1.108, AMRI v1=ROBUST, v2 w=1.000
+    True SE (bootstrap 50K): 0.071110
+    Naive SE:    0.044018 (err=38.1%), boot_cov=0.7776
+    HC3 SE:      0.072178 (err=1.5%), boot_cov=0.9544
+    AMRI v1 SE:  0.075787 (err=6.6%), boot_cov=0.9644
+    AMRI v2 SE:  0.072178 (err=1.5%), boot_cov=0.9544
+    Closest to 0.95 coverage: HC3 (0.0044 away)
+
+  Gapminder_GDP (GDPperCapita->LifeExpectancy, n=142)
+    SE ratio=0.876, threshold=1.168, AMRI v1=EFFICIENT, v2 w=0.584
+    True SE (bootstrap 50K): 0.000051
+    Naive SE:    0.000058 (err=15.3%), boot_cov=0.9743
+    HC3 SE:      0.000051 (err=1.0%), boot_cov=0.9527
+    AMRI v1 SE:  0.000058 (err=15.3%), boot_cov=0.9743
+    AMRI v2 SE:  0.000054 (err=6.9%), boot_cov=0.9629
+    Closest to 0.95 coverage: HC3 (0.0027 away)
+
+  Gapminder_Pop (Population->LifeExpectancy, n=142)
+    SE ratio=0.607, threshold=1.168, AMRI v1=ROBUST, v2 w=1.000
+    True SE (bootstrap 50K): 0.000000
+    Naive SE:    0.000000 (err=31.3%), boot_cov=0.9058
+    HC3 SE:      0.000000 (err=58.3%), boot_cov=0.8789
+    AMRI v1 SE:  0.000000 (err=56.2%), boot_cov=0.8830
+    AMRI v2 SE:  0.000000 (err=58.3%), boot_cov=0.8789
+    Closest to 0.95 coverage: Naive (0.0442 away)
+
+  Babies_BirthWt (GestationDays->BirthWeight, n=1223)
+    SE ratio=1.514, threshold=1.057, AMRI v1=ROBUST, v2 w=1.000
+    True SE (bootstrap 50K): 0.043621
+    Naive SE:    0.029744 (err=31.8%), boot_cov=0.8175
+    HC3 SE:      0.045043 (err=3.3%), boot_cov=0.9582
+    AMRI v1 SE:  0.047296 (err=8.4%), boot_cov=0.9681
+    AMRI v2 SE:  0.045043 (err=3.3%), boot_cov=0.9582
+    Closest to 0.95 coverage: HC3 (0.0082 away)
+
+  Evals_Beauty (BeautyRating->TeachingScore, n=463)
+    SE ratio=1.059, threshold=1.093, AMRI v1=EFFICIENT, v2 w=0.228
+    True SE (bootstrap 50K): 0.017118
+    Naive SE:    0.016291 (err=4.8%), boot_cov=0.9390
+    HC3 SE:      0.017248 (err=0.8%), boot_cov=0.9523
+    AMRI v1 SE:  0.016291 (err=4.8%), boot_cov=0.9390
+    AMRI v2 SE:  0.016509 (err=3.6%), boot_cov=0.9423
+    Closest to 0.95 coverage: HC3 (0.0023 away)
+
+  SAT_ACT (SATVerbal->ACTScore, n=700)
+    SE ratio=1.356, threshold=1.076, AMRI v1=ROBUST, v2 w=1.000
+    True SE (bootstrap 50K): 0.001786
+    Naive SE:    0.001339 (err=25.1%), boot_cov=0.8567
+    HC3 SE:      0.001816 (err=1.6%), boot_cov=0.9532
+    AMRI v1 SE:  0.001907 (err=6.7%), boot_cov=0.9630
+    AMRI v2 SE:  0.001816 (err=1.6%), boot_cov=0.9532
+    Closest to 0.95 coverage: HC3 (0.0032 away)
+
+================================================================================
+SUMMARY
+================================================================================
+
+  Total datasets: 61
+  AMRI chose ROBUST: 42 (69%)
+  AMRI chose EFFICIENT: 19 (31%)
+
+  Average SE error (% from bootstrap truth):
+    Naive:   22.9%
+    HC3:     8.5%
+    AMRI v1: 12.8%
+    AMRI v2: 9.0%
+
+  Average bootstrap coverage (target: 0.95):
+    Naive:   0.8839
+    HC3:     0.9529
+    AMRI v1: 0.9583
+    AMRI v2: 0.9529
+
+  Closest to 0.95 coverage (within 0.005):
+    AMRI v2: 49/61 datasets
+    AMRI v1: 14/61 datasets
+    HC3:     54/61 datasets
+    Naive:   7/61 datasets
+
+  Datasets with detected misspecification (SE ratio > 1.1): 33
+    California_Housing: ratio=1.154, Naive coverage=0.9104, AMRI coverage=0.9604
+    California_Rooms: ratio=4.716, Naive coverage=0.3551, AMRI coverage=0.9647
+    Fair_Affairs: ratio=1.181, Naive coverage=0.9049, AMRI coverage=0.9603
+    Star98_Math: ratio=18.157, Naive coverage=0.6242, AMRI coverage=0.9999
+    Abalone_ShellWt: ratio=1.133, Naive coverage=0.9167, AMRI coverage=0.9607
+    AutoMPG_HP: ratio=1.163, Naive coverage=0.9109, AMRI coverage=0.9612
+    mtcars_HP: ratio=1.641, Naive coverage=0.8650, AMRI coverage=0.9838
+    mtcars_Weight: ratio=1.320, Naive coverage=0.8972, AMRI coverage=0.8972
+    mtcars_Disp: ratio=1.145, Naive coverage=0.9330, AMRI coverage=0.9330
+    Swiss_Agriculture: ratio=1.129, Naive coverage=0.9441, AMRI coverage=0.9441
+    Trees_Girth: ratio=1.499, Naive coverage=0.8828, AMRI coverage=0.9842
+    AirQuality_Wind: ratio=1.240, Naive coverage=0.9044, AMRI coverage=0.9693
+    Auto_HP: ratio=1.163, Naive coverage=0.9109, AMRI coverage=0.9612
+    Boston_Rooms: ratio=1.606, Naive coverage=0.7863, AMRI coverage=0.9647
+    Boston_LSTAT: ratio=1.293, Naive coverage=0.8744, AMRI coverage=0.9628
+    Boston_Crime: ratio=1.849, Naive coverage=0.7803, AMRI coverage=0.9565
+    Cats_BodyWt: ratio=1.270, Naive coverage=0.8914, AMRI coverage=0.9676
+    Prestige_Income: ratio=1.779, Naive coverage=0.8012, AMRI coverage=0.9629
+    Diamonds_Carat: ratio=1.918, Naive coverage=0.7030, AMRI coverage=0.9638
+    Midwest_Poverty: ratio=1.206, Naive coverage=0.8970, AMRI coverage=0.9607
+    Midwest_PopDens: ratio=2.440, Naive coverage=0.6809, AMRI coverage=0.9352
+    MPG_Displ: ratio=1.294, Naive coverage=0.8792, AMRI coverage=0.9640
+    MPG_Cty: ratio=1.121, Naive coverage=0.9323, AMRI coverage=0.9323
+    Wage1_Educ: ratio=1.162, Naive coverage=0.9139, AMRI coverage=0.9622
+    HPrice_Sqrft: ratio=1.787, Naive coverage=0.7630, AMRI coverage=0.9752
+    HPrice_Lotsize: ratio=11.631, Naive coverage=0.5273, AMRI coverage=1.0000
+    CEO_Sales: ratio=1.103, Naive coverage=0.9521, AMRI coverage=0.9521
+    RDChem_Sales: ratio=6.346, Naive coverage=0.6433, AMRI coverage=0.9992
+    MEAP_Expend: ratio=1.124, Naive coverage=0.9193, AMRI coverage=0.9608
+    Crime_Wage: ratio=3.428, Naive coverage=0.6700, AMRI coverage=0.8647
+    Gasoline_Income: ratio=1.640, Naive coverage=0.7776, AMRI coverage=0.9644
+    Babies_BirthWt: ratio=1.514, Naive coverage=0.8175, AMRI coverage=0.9681
+    SAT_ACT: ratio=1.356, Naive coverage=0.8567, AMRI coverage=0.9630
+
+  Paired tests: AMRI v2 distance from 0.95 vs others
+    vs Naive  : diff=+0.06898 (v2 closer), t=5.018, p=0.0000 ***
+    vs HC3    : diff=-0.00046 (other closer), t=-0.660, p=0.5116 ns
+    vs AMRI v1: diff=+0.00659 (v2 closer), t=6.951, p=0.0000 ***
+
+  Results saved to figures/real_data_results.csv
+
+DONE.

@@ -186,17 +186,21 @@ def test_monotonic_degradation(df, method='Naive_OLS'):
     for dgp in dgps:
         for n_val in ns:
             dsub = sub[(sub['dgp'] == dgp) & (sub['n'] == n_val)].sort_values('delta')
-            if len(dsub) < 3:
+            if len(dsub) < 2:
                 continue
             deltas = dsub['delta'].values
             covs = dsub['coverage'].values
 
-            # Spearman correlation between delta and coverage (expect negative)
-            rho, p_val = stats.spearmanr(deltas, covs)
-            # One-sided test: rho < 0 means coverage decreases with delta
-            p_one_sided = p_val / 2 if rho < 0 else 1 - p_val / 2
-
             total_drop = covs[0] - covs[-1]
+
+            if len(dsub) >= 3:
+                rho, p_val = stats.spearmanr(deltas, covs)
+                p_one_sided = p_val / 2 if rho < 0 else 1 - p_val / 2
+            else:
+                # With only 2 points, use sign of drop as test
+                rho = -1.0 if total_drop > 0 else 1.0
+                p_one_sided = 0.5  # uninformative
+
             all_rhos.append(rho)
             all_pvals.append(p_one_sided)
             results.append({
@@ -209,6 +213,10 @@ def test_monotonic_degradation(df, method='Naive_OLS'):
 
     res_df = pd.DataFrame(results)
 
+    if len(results) == 0:
+        print("  No (DGP, n) combinations with enough delta values to test.")
+        return pd.DataFrame(), 1.0
+
     # Combined test across all (dgp, n) combos using Fisher's method
     log_p = np.log(np.maximum(np.array(all_pvals), 1e-300))
     fisher_stat = -2 * log_p.sum()
@@ -218,7 +226,7 @@ def test_monotonic_degradation(df, method='Naive_OLS'):
     n_total = len(results)
     n_sig = sum(r['significant'] for r in results)
     avg_rho = np.mean(all_rhos)
-    avg_drop = res_df['total_drop'].mean()
+    avg_drop = np.mean([r['total_drop'] for r in results])
 
     print(f"  Tested {n_total} (DGP, n) combinations")
     print(f"  Average Spearman rho: {avg_rho:.4f} (negative = degradation)")

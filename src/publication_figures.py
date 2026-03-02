@@ -168,7 +168,8 @@ def fig_amri_vs_aks(df):
     amri_acc = abs(merged['coverage_amri'] - 0.95)
     aks_acc = abs(merged['coverage_aks'] - 0.95)
 
-    colors = merged['delta'].map({0.0: '#4DAF4A', 0.5: '#FF7F00', 1.0: '#E41A1C'})
+    colors = merged['delta'].map({0.0: '#4DAF4A', 0.25: '#84C441', 0.5: '#FF7F00', 0.75: '#FF4040', 1.0: '#E41A1C'})
+    colors = colors.fillna('#999999')  # fallback for any unmapped delta values
     ax1.scatter(aks_acc, amri_acc, c=colors, s=60, alpha=0.8, edgecolors='white', linewidth=0.5)
     lim = max(aks_acc.max(), amri_acc.max()) * 1.1
     ax1.plot([0, lim], [0, lim], 'k--', linewidth=0.8, alpha=0.5, label='Equal accuracy')

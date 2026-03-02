@@ -1,0 +1,214 @@
+Loading all available results...
+Loaded 895 scenarios
+DGPs: ['Clustering', 'Contaminated', 'Heavy_Tails', 'Heteroscedastic', 'Nonlinear', 'Omitted_Variable']
+Methods: ['AKS_Adaptive', 'AMRI_v1', 'AMRI_v2', 'Bootstrap_t', 'Naive_OLS', 'Pairs_Bootstrap', 'Sandwich_HC3', 'Sandwich_HC4', 'Sandwich_HC5', 'Wild_Bootstrap']
+Deltas: [np.float64(0.0), np.float64(0.25), np.float64(0.5), np.float64(0.75), np.float64(1.0)]
+Sample sizes: [np.int64(100), np.int64(500), np.int64(2000)]
+
+================================================================================
+TEST 1: COVERAGE VALIDITY (Is coverage >= 0.95?)
+================================================================================
+Method: Exact binomial test per scenario + Fisher's combined test
+Significance level: 0.05
+
+  AKS_Adaptive        : avg_cov=0.9476, min=0.9110, undercov_scenarios=50/89, sig_failures=7, Fisher_p=0.000000 -> FAILS
+  AMRI_v1             : avg_cov=0.9532, min=0.9305, undercov_scenarios=28/90, sig_failures=1, Fisher_p=0.999364 -> VALID
+  AMRI_v2             : avg_cov=0.9504, min=0.9340, undercov_scenarios=43/90, sig_failures=0, Fisher_p=0.449128 -> VALID
+  Bootstrap_t         : avg_cov=0.9375, min=0.8940, undercov_scenarios=73/87, sig_failures=7, Fisher_p=0.000000 -> FAILS
+  Naive_OLS           : avg_cov=0.9212, min=0.6735, undercov_scenarios=54/90, sig_failures=21, Fisher_p=0.000000 -> FAILS
+  Pairs_Bootstrap     : avg_cov=0.9400, min=0.9060, undercov_scenarios=71/90, sig_failures=3, Fisher_p=0.000000 -> FAILS
+  Sandwich_HC3        : avg_cov=0.9493, min=0.9370, undercov_scenarios=52/90, sig_failures=0, Fisher_p=0.055906 -> VALID
+  Sandwich_HC4        : avg_cov=0.9565, min=0.9415, undercov_scenarios=20/90, sig_failures=0, Fisher_p=1.000000 -> VALID
+  Sandwich_HC5        : avg_cov=0.9516, min=0.9400, undercov_scenarios=37/90, sig_failures=0, Fisher_p=0.997257 -> VALID
+  Wild_Bootstrap      : avg_cov=0.9351, min=0.8940, undercov_scenarios=78/89, sig_failures=7, Fisher_p=0.000000 -> FAILS
+
+================================================================================
+TEST 2: MONOTONIC DEGRADATION (Naive_OLS)
+================================================================================
+Method: Spearman rank correlation + permutation test per (DGP, n) combo
+
+  Tested 18 (DGP, n) combinations
+  Average Spearman rho: -0.3307 (negative = degradation)
+  Average total drop: 0.0612
+  Significant degradation in 6/18 combos
+  Fisher combined p-value: 0.00e+00
+  VERDICT: CONFIRMED (monotonic degradation detected)
+
+  By DGP:
+    Clustering: avg_drop=0.0022, avg_rho=-0.3881, sig=0/3
+    Contaminated: avg_drop=0.0015, avg_rho=0.0667, sig=0/3
+    Heavy_Tails: avg_drop=-0.0005, avg_rho=0.2000, sig=0/3
+    Heteroscedastic: avg_drop=0.1003, avg_rho=-1.0000, sig=3/3
+    Nonlinear: avg_drop=0.2645, avg_rho=-1.0000, sig=3/3
+    Omitted_Variable: avg_drop=-0.0005, avg_rho=0.1369, sig=0/3
+
+================================================================================
+TEST 3: UNIVERSAL ROBUSTNESS GUARANTEE (Sandwich_HC3 >= 0.93)
+================================================================================
+Method: Wilson CI lower bound for each scenario
+
+  90 scenarios tested
+  Minimum observed coverage: 0.9370
+  Minimum Wilson CI lower bound: 0.9255
+  Scenarios with lower bound >= 0.93: 83/90
+  Worst case: Nonlinear, d=0.5, n=100: cov=0.9370, CI_lower=0.9255
+
+  Simes test (H0: coverage >= 0.93 for ALL scenarios):
+  Result: NOT REJECTED (robustness confirmed)
+
+  VERDICT: CONFIRMED
+
+================================================================================
+TEST 3: UNIVERSAL ROBUSTNESS GUARANTEE (AMRI_v2 >= 0.93)
+================================================================================
+Method: Wilson CI lower bound for each scenario
+
+  90 scenarios tested
+  Minimum observed coverage: 0.9340
+  Minimum Wilson CI lower bound: 0.9223
+  Scenarios with lower bound >= 0.93: 87/90
+  Worst case: Nonlinear, d=0.25, n=100: cov=0.9340, CI_lower=0.9223
+
+  Simes test (H0: coverage >= 0.93 for ALL scenarios):
+  Result: NOT REJECTED (robustness confirmed)
+
+  VERDICT: CONFIRMED
+
+================================================================================
+TEST 4: AMRI BEST-OF-BOTH-WORLDS (with TOST equivalence)
+================================================================================
+
+  Part A: Efficiency at delta=0 (AMRI_v2 equivalent to Naive)
+  TOST equivalence margin: +/- 0.02
+    Coverage difference (AMRI_v2 - Naive): mean=0.00014
+    TOST p-value: 0.0000, 90% CI: [-0.00025, 0.00053]
+    Equivalence: CONFIRMED (|diff| < 0.02)
+    Width ratio (AMRI_v2/Naive): mean=1.0042, max=1.0115
+    Efficiency verdict: True
+
+  Part B: Robustness at delta>0 (AMRI_v2 equivalent to HC3)
+    Coverage difference (AMRI_v2 - HC3): mean=0.00100
+    TOST p-value: 0.0000, 90% CI: [0.00054, 0.00146]
+    Equivalence: CONFIRMED
+    Not-worse (one-sided) p: 0.0003
+    Sign: 39+, 16-, 0=
+    Min AMRI_v2 coverage at delta>0: 0.9340
+    Robustness verdict: True
+
+  Part C: Width bounded (AMRI_v2 width <= 1.1 * HC3 width)
+    Width ratio (AMRI_v2/HC3): mean=1.0027, max=1.0151, min=0.9865
+    Width bounded? True
+
+  OVERALL VERDICT: CONFIRMED
+
+================================================================================
+TEST 5: DEGRADATION RATE ORDERING
+================================================================================
+Method: Compute degradation slopes per (method, DGP, n), then compare
+
+  Method degradation rates (negative = coverage drops with delta):
+  Method               Mean slope   SE         Median       N
+  ------------------------------------------------------------------
+  Naive_OLS            -0.06304    0.02435    -0.00300    18
+  Bootstrap_t          -0.00800    0.00324    -0.01000    18
+  Wild_Bootstrap       -0.00253    0.00369    -0.00160    18
+  Pairs_Bootstrap      -0.00191    0.00371    -0.00560    18
+  Sandwich_HC3         +0.00114    0.00131    +0.00120    18
+
+  Pairwise comparisons (Mann-Whitney U test):
+    Naive_OLS vs Sandwich_HC3: U=92.0, p=0.013938 (*)
+    Naive_OLS vs Pairs_Bootstrap: U=127.0, p=0.137519 (ns)
+
+================================================================================
+TEST 6: SAMPLE SIZE PARADOX
+================================================================================
+Does more data WORSEN naive inference under misspecification?
+
+  Naive_OLS           : avg_rho(log_n, coverage)=-0.1592, t=-0.890, p=0.3859 (MORE data OK/helps)
+  Sandwich_HC3        : avg_rho(log_n, coverage)=+0.3056, t=2.650, p=0.0169 (MORE data OK/helps)
+
+================================================================================
+TEST 7: WIDTH ADAPTATION (do robust methods auto-widen?)
+================================================================================
+
+  Naive_OLS           : avg_width_slope=+0.11749, t=2.644, p=0.017046 -> WIDENS
+  Sandwich_HC3        : avg_width_slope=+0.19052, t=3.087, p=0.006691 -> WIDENS
+  Pairs_Bootstrap     : avg_width_slope=+0.17891, t=3.159, p=0.005727 -> WIDENS
+
+================================================================================
+TEST 8: AMRI v2 vs AKS ADAPTIVE (Head-to-Head)
+================================================================================
+
+  Matched scenarios: 89
+
+  A. Coverage accuracy (|cov - 0.95|):
+    AMRI v2 mean: 0.0048
+    AKS mean:     0.0078
+    Diff (AKS - AMRI): 0.0030 (positive = AMRI better)
+    One-sided p (AMRI better): 0.0000 ***
+
+  B. Coverage range:
+    AMRI v2: [0.9340, 0.9640]
+    AKS:     [0.9110, 0.9655]
+
+  D. Under misspecification (delta > 0, 72 scenarios):
+    AMRI accuracy: 0.0051
+    AKS accuracy:  0.0088
+    AMRI wins: 43/72 scenarios (60%)
+
+  VERDICT: AMRI v2 significantly outperforms AKS on coverage accuracy
+
+================================================================================
+TEST 9: POWER ANALYSIS
+================================================================================
+  Detectable effect: 0.01 deviation from 0.95
+  Target power: 0.8
+  Significance: 0.05
+
+  B=   500: SE=0.0097, Power=0.2850 
+  B=  1000: SE=0.0069, Power=0.4294 
+  B=  2000: SE=0.0049, Power=0.6457 
+  B=  5000: SE=0.0031, Power=0.9289 [SUFFICIENT]
+  B= 10000: SE=0.0022, Power=0.9965 [SUFFICIENT]
+
+  Minimum B for 80% power to detect 0.01 deviation: 3118
+  Our B=2000: INSUFFICIENT for this effect size
+
+================================================================================
+PUBLICATION SUMMARY TABLE
+================================================================================
+
+  Method                d=0.0,n= 500  d=0.5,n= 500  d=1.0,n= 500  d=0.0,n= 100  d=1.0,n= 100   Overall
+  ----------------------------------------------------------------------------------------------------
+  Naive_OLS                   0.9545        0.9226        0.8905        0.9509        0.8898    0.9212
+  Sandwich_HC3                0.9536        0.9517        0.9513        0.9487        0.9480    0.9493
+  Pairs_Bootstrap             0.9483        0.9413        0.9387        0.9373        0.9300    0.9400
+  Wild_Bootstrap              0.9467        0.9380        0.9340        0.9280        0.9213    0.9351
+  Bootstrap_t                 0.9467        0.9360        0.9307        0.9408        0.9290    0.9375
+
+  Method                d=0.0,n= 500  d=0.5,n= 500  d=1.0,n= 500  d=0.0,n= 100  d=1.0,n= 100
+  ------------------------------------------------------------------------------------------
+  Naive_OLS                   0.1761        0.2269        0.2697        0.4008        0.6042
+  Sandwich_HC3                0.1762        0.2487        0.3292        0.4025        0.7300
+  Pairs_Bootstrap             0.1732        0.2440        0.3220        0.3870        0.6853
+  Wild_Bootstrap              0.1722        0.2416        0.3182        0.3775        0.6626
+  Bootstrap_t                 0.1746        0.2480        0.3317        0.4029        0.7781
+
+================================================================================
+FINAL HYPOTHESIS STATUS SUMMARY
+================================================================================
+
+    H1 (Naive Degrades):      Formal trend tests with Fisher combination
+    H2 (Sandwich Robustness): Wilson CI lower bounds + Simes test
+    H3 (AMRI Best-of-Both):   TOST equivalence (epsilon=0.02) + paired tests
+    H4 (Ordering):            Mann-Whitney U pairwise comparisons
+    H5 (Width Adaptation):    Linear trend tests in width vs delta
+    H6 (AMRI > AKS):          One-sided paired t-test on coverage accuracy
+    BONUS (Size Paradox):     Spearman correlation of coverage with log(n)
+    BONUS (Power):            Minimum B = [500, 1000, 2000, 5000, 10000] for 0.01 effect
+
+    Data: 895 scenarios across 6 DGPs,
+          10 methods, deltas [np.float64(0.0), np.float64(0.25), np.float64(0.5), np.float64(0.75), np.float64(1.0)],
+          n in [np.int64(100), np.int64(500), np.int64(2000)]
+    
+DONE.
