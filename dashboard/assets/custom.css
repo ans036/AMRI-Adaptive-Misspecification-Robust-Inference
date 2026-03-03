@@ -139,3 +139,40 @@
     font-weight: 600;
     font-size: 0.9rem;
 }
+
+/* ---- Method comparison card grid ---- */
+.method-card-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+/* ---- Summary table ---- */
+.table-sm th {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #555;
+    white-space: nowrap;
+}
+.table-sm td {
+    font-size: 0.85rem;
+    vertical-align: middle;
+}
+
+/* ---- Info banner stats ---- */
+.info-stat {
+    text-align: center;
+    padding: 8px 4px;
+}
+.info-stat-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #888;
+}
+.info-stat-value {
+    font-size: 1.2rem;
+    font-weight: 700;
+    font-family: 'Courier New', monospace;
+}

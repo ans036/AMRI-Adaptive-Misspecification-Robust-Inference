@@ -6,6 +6,7 @@ Run: python dashboard/app.py
 Open: http://localhost:8050
 """
 
+import os
 import sys
 from pathlib import Path
 
@@ -23,8 +24,13 @@ from components.navbar import create_navbar
 
 # ---------------------------------------------------------------------------
 # Background callback manager (DiskCache-based, zero infrastructure)
+# Use /tmp for cloud deployments (ephemeral but writable)
 # ---------------------------------------------------------------------------
-cache = diskcache.Cache(str(PROJECT_ROOT / "dashboard" / ".cache"))
+_cache_dir = os.environ.get(
+    "DASH_CACHE_DIR",
+    str(PROJECT_ROOT / "dashboard" / ".cache"),
+)
+cache = diskcache.Cache(_cache_dir)
 background_callback_manager = DiskcacheManager(cache)
 
 # ---------------------------------------------------------------------------
@@ -50,7 +56,7 @@ app = Dash(
     title="AMRI Dashboard",
 )
 
-server = app.server  # For deployment
+server = app.server  # For deployment (gunicorn dashboard.app:server)
 
 # ---------------------------------------------------------------------------
 # App layout
@@ -92,4 +98,6 @@ app.layout = dbc.Container(
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=8050)
+    port = int(os.environ.get("PORT", 8050))
+    debug = os.environ.get("DASH_DEBUG", "1") == "1"
+    app.run(debug=debug, host="0.0.0.0", port=port)

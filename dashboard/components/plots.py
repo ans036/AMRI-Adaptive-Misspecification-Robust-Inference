@@ -6,22 +6,21 @@ All functions return a plotly.graph_objects.Figure ready for dcc.Graph.
 
 import numpy as np
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 
 # ---------------------------------------------------------------------------
-# Color scheme (matches publication figures)
+# Color scheme — high-contrast, visually distinct per method
 # ---------------------------------------------------------------------------
 COLORS = {
-    "AMRI_v2": "#2166AC",
-    "AMRI_v1": "#67A9CF",
-    "Sandwich_HC3": "#D6604D",
-    "Sandwich_HC4": "#F4A582",
-    "Sandwich_HC5": "#B2182B",
-    "AKS_Adaptive": "#5AB4AC",
-    "Naive_OLS": "#999999",
-    "Pairs_Bootstrap": "#B2ABD2",
-    "Wild_Bootstrap": "#FDB863",
-    "Bootstrap_t": "#E08214",
+    "AMRI_v2": "#1A5276",       # deep navy (flagship)
+    "AMRI_v1": "#2E86C1",       # bright blue
+    "Sandwich_HC3": "#C0392B",  # strong red
+    "Sandwich_HC4": "#E67E22",  # orange
+    "Sandwich_HC5": "#8E44AD",  # purple
+    "AKS_Adaptive": "#27AE60",  # green
+    "Naive_OLS": "#7F8C8D",    # gray
+    "Pairs_Bootstrap": "#D4AC0D", # gold
+    "Wild_Bootstrap": "#E74C3C", # bright red-orange
+    "Bootstrap_t": "#16A085",   # teal
 }
 
 TEMPLATE_LIGHT = "plotly_white"
@@ -34,6 +33,20 @@ def _method_color(method: str) -> str:
 
 def _nice_name(method: str) -> str:
     return method.replace("_", " ")
+
+
+def _sfmt(x, digits=4):
+    """Safe number formatter for plot annotations."""
+    if x is None or (isinstance(x, float) and not np.isfinite(x)):
+        return "N/A"
+    abs_x = abs(x)
+    if abs_x == 0:
+        return "0"
+    if abs_x >= 1e6 or abs_x < 1e-6:
+        return f"{x:.2e}"
+    if abs_x >= 100:
+        return f"{x:.1f}"
+    return f"{x:.{digits}f}"
 
 
 # ---------------------------------------------------------------------------
@@ -52,26 +65,36 @@ def build_forest_plot(results_list, theta_true, title="Inference Results"):
     """
     fig = go.Figure()
 
-    methods = [r["method"] for r in results_list if r["theta_hat"] is not None]
-    n_methods = len(methods)
+    # Filter out results with non-finite values
+    valid_results = [r for r in results_list
+                     if r["theta_hat"] is not None
+                     and np.isfinite(r.get("ci_low", 0))
+                     and np.isfinite(r.get("ci_high", 0))]
+    n_methods = len(valid_results)
 
-    # Vertical reference line at theta_true
-    fig.add_shape(
-        type="line", x0=theta_true, x1=theta_true,
-        y0=-0.5, y1=n_methods - 0.5,
-        line=dict(color="#333333", width=2, dash="dash"),
-    )
-    fig.add_annotation(
-        x=theta_true, y=n_methods - 0.3,
-        text=f"True theta = {theta_true:.3f}",
-        showarrow=False, font=dict(size=10, color="#333333"),
-        yshift=15,
-    )
+    # Vertical reference line at theta_true (only if known)
+    if theta_true is not None:
+        fig.add_shape(
+            type="line", x0=theta_true, x1=theta_true,
+            y0=-0.5, y1=n_methods - 0.5,
+            line=dict(color="#333333", width=2, dash="dash"),
+        )
+        fig.add_annotation(
+            x=theta_true, y=-0.5,
+            text=f"True \u03b8 = {_sfmt(theta_true)}",
+            showarrow=False, font=dict(size=11, color="#333333"),
+            yshift=-18,
+        )
 
-    valid_results = [r for r in results_list if r["theta_hat"] is not None]
     for i, r in enumerate(valid_results):
-        covers = r["covers_true"]
-        color = "#2ca02c" if covers else "#d62728"  # green if covers, red if not
+        covers = r.get("covers_true")
+        # Green if covers, red if misses, method color if unknown
+        if covers is True:
+            color = "#27AE60"
+        elif covers is False:
+            color = "#C0392B"
+        else:
+            color = _method_color(r["method"])
         method_color = _method_color(r["method"])
 
         # CI bar (horizontal line)
@@ -79,38 +102,44 @@ def build_forest_plot(results_list, theta_true, title="Inference Results"):
             x=[r["ci_low"], r["ci_high"]],
             y=[i, i],
             mode="lines",
-            line=dict(color=color, width=4),
+            line=dict(color=color, width=5),
             showlegend=False,
             hoverinfo="skip",
         ))
 
         # Point estimate (diamond marker)
+        covers_text = ""
+        if covers is True:
+            covers_text = "Covers true \u03b8: Yes"
+        elif covers is False:
+            covers_text = "Covers true \u03b8: No"
+
         fig.add_trace(go.Scatter(
             x=[r["theta_hat"]],
             y=[i],
             mode="markers",
             marker=dict(
-                symbol="diamond", size=12,
+                symbol="diamond", size=13,
                 color=method_color, line=dict(color="white", width=1.5),
             ),
             showlegend=False,
             hovertemplate=(
                 f"<b>{_nice_name(r['method'])}</b><br>"
-                f"theta_hat = {r['theta_hat']:.4f}<br>"
-                f"SE = {r['se']:.4f}<br>"
-                f"CI = [{r['ci_low']:.4f}, {r['ci_high']:.4f}]<br>"
-                f"Width = {r['width']:.4f}<br>"
-                f"Covers true: {'Yes' if covers else 'No'}"
-                "<extra></extra>"
+                f"\u03b8\u0302 = {_sfmt(r['theta_hat'])}<br>"
+                f"SE = {_sfmt(r['se'])}<br>"
+                f"CI = [{_sfmt(r['ci_low'])}, {_sfmt(r['ci_high'])}]<br>"
+                f"Width = {_sfmt(r['width'])}"
+                + (f"<br>{covers_text}" if covers_text else "")
+                + "<extra></extra>"
             ),
         ))
 
         # Annotation: SE and width on the right
         fig.add_annotation(
             x=r["ci_high"], y=i,
-            text=f"  SE={r['se']:.3f}  W={r['width']:.3f}",
+            text=f"  SE={_sfmt(r['se'])}  W={_sfmt(r['width'])}",
             showarrow=False, xanchor="left",
-            font=dict(size=9, color="#666666"),
+            font=dict(size=10, color="#555555"),
         )
 
     fig.update_layout(
@@ -123,7 +152,7 @@ def build_forest_plot(results_list, theta_true, title="Inference Results"):
         ),
         template=TEMPLATE_LIGHT,
         height=max(350, 55 * n_methods + 100),
-        margin=dict(l=140, r=160, t=60, b=50),
+        margin=dict(l=140, r=180, t=60, b=50),
         plot_bgcolor="rgba(0,0,0,0)",
     )
 
@@ -306,12 +335,12 @@ def build_coverage_vs_delta(df, methods=None, dgp_filter=None,
             name=_nice_name(method),
             line=dict(color=_method_color(method), width=2.5),
             marker=dict(size=7),
-            hovertemplate=f"{_nice_name(method)}<br>delta=%{{x}}<br>Coverage=%{{y:.4f}}<extra></extra>",
+            hovertemplate=f"{_nice_name(method)}<br>\u03b4 = %{{x}}<br>Coverage = %{{y:.4f}}<extra></extra>",
         ))
 
     fig.update_layout(
         title=dict(text=title, font=dict(size=16)),
-        xaxis_title="Misspecification Severity (delta)",
+        xaxis_title="Misspecification Severity (\u03b4)",
         yaxis_title="Coverage",
         yaxis=dict(range=[0.85, 1.0]),
         template=TEMPLATE_LIGHT,
@@ -413,6 +442,9 @@ def build_diagnostic_panel(se_ratio, weight, c1, c2, n):
 
     fig = go.Figure()
 
+    # Ensure enough space for all zones
+    x_max = max(hi * 2.5, log_r * 1.5, 0.5)
+
     # Efficient zone (green)
     fig.add_shape(type="rect", x0=0, x1=lo, y0=0.3, y1=0.7,
                   fillcolor="rgba(44, 160, 44, 0.2)", line=dict(width=0))
@@ -420,9 +452,8 @@ def build_diagnostic_panel(se_ratio, weight, c1, c2, n):
     fig.add_shape(type="rect", x0=lo, x1=hi, y0=0.3, y1=0.7,
                   fillcolor="rgba(255, 193, 7, 0.2)", line=dict(width=0))
     # Robust zone (red)
-    x_max = max(hi * 2, log_r * 1.3, 0.5)
     fig.add_shape(type="rect", x0=hi, x1=x_max, y0=0.3, y1=0.7,
-                  fillcolor="rgba(214, 39, 40, 0.15)", line=dict(width=0))
+                  fillcolor="rgba(214, 39, 40, 0.12)", line=dict(width=0))
 
     # Threshold lines
     fig.add_shape(type="line", x0=lo, x1=lo, y0=0.2, y1=0.8,
@@ -432,38 +463,59 @@ def build_diagnostic_panel(se_ratio, weight, c1, c2, n):
 
     # Current |log R| marker
     fig.add_trace(go.Scatter(
-        x=[log_r], y=[0.5], mode="markers+text",
+        x=[log_r], y=[0.5], mode="markers",
         marker=dict(symbol="diamond", size=18, color="#2166AC",
                     line=dict(color="white", width=2)),
-        text=[f"|log R| = {log_r:.4f}"],
-        textposition="top center",
-        textfont=dict(size=11, color="#2166AC"),
         showlegend=False,
-        hovertemplate=f"|log R| = {log_r:.4f}<br>w = {weight:.4f}<extra></extra>",
+        hovertemplate=(
+            f"|log R| = {log_r:.4f}<br>"
+            f"w = {weight:.3f}<extra></extra>"
+        ),
     ))
 
-    # Zone labels
-    fig.add_annotation(x=lo / 2, y=0.15, text="Efficient", showarrow=False,
-                       font=dict(size=10, color="#2ca02c"))
-    fig.add_annotation(x=(lo + hi) / 2, y=0.15, text="Transition", showarrow=False,
-                       font=dict(size=10, color="#FF8C00"))
-    fig.add_annotation(x=hi + (x_max - hi) / 3, y=0.15, text="Robust", showarrow=False,
-                       font=dict(size=10, color="#d62728"))
+    # Marker label (positioned to avoid overlap)
+    marker_y = 0.82 if log_r < (lo + hi) / 2 else 0.82
+    fig.add_annotation(
+        x=log_r, y=marker_y,
+        text=f"|log R| = {log_r:.3f}",
+        showarrow=True, arrowhead=2, arrowsize=0.8,
+        ax=0, ay=-25,
+        font=dict(size=11, color="#2166AC"),
+    )
 
-    # Threshold labels
-    fig.add_annotation(x=lo, y=0.87, text=f"c1/sqrt(n)={lo:.4f}", showarrow=False,
-                       font=dict(size=9))
-    fig.add_annotation(x=hi, y=0.87, text=f"c2/sqrt(n)={hi:.4f}", showarrow=False,
-                       font=dict(size=9))
+    # Zone labels (at bottom, well spaced)
+    fig.add_annotation(x=lo / 2, y=0.12, text="Efficient",
+                       showarrow=False, font=dict(size=11, color="#2ca02c"))
+    fig.add_annotation(x=(lo + hi) / 2, y=0.12, text="Transition",
+                       showarrow=False, font=dict(size=11, color="#FF8C00"))
+    fig.add_annotation(x=min(hi + (x_max - hi) * 0.4, x_max * 0.8),
+                       y=0.12, text="Robust",
+                       showarrow=False, font=dict(size=11, color="#d62728"))
+
+    # Threshold labels (offset vertically to avoid collision)
+    fig.add_annotation(
+        x=lo, y=0.95,
+        text=f"c\u2081/\u221an = {lo:.3f}",
+        showarrow=False, font=dict(size=10, color="#2ca02c"),
+        xanchor="center",
+    )
+    fig.add_annotation(
+        x=hi, y=0.95,
+        text=f"c\u2082/\u221an = {hi:.3f}",
+        showarrow=False, font=dict(size=10, color="#d62728"),
+        xanchor="center",
+    )
 
     fig.update_layout(
-        title=dict(text=f"AMRI Diagnostic: R={se_ratio:.3f}, w={weight:.3f}",
-                   font=dict(size=13)),
-        xaxis=dict(range=[0, x_max], title="|log(SE_ratio)|"),
-        yaxis=dict(range=[0, 1], visible=False),
+        title=dict(
+            text=f"AMRI Diagnostic: R = {se_ratio:.3f}, w = {weight:.3f}",
+            font=dict(size=13),
+        ),
+        xaxis=dict(range=[0, x_max], title="|log(SE ratio)|"),
+        yaxis=dict(range=[0, 1.05], visible=False),
         template=TEMPLATE_LIGHT,
-        height=220,
-        margin=dict(l=50, r=20, t=50, b=40),
+        height=240,
+        margin=dict(l=40, r=20, t=50, b=40),
     )
 
     return fig
@@ -550,4 +602,156 @@ def build_accuracy_ranking(mc_results, alpha=0.05,
         margin=dict(l=140, r=20, t=50, b=50),
     )
 
+    return fig
+
+
+# ---------------------------------------------------------------------------
+# 11. SE Comparison — Horizontal lollipop chart showing % deviation from Naive
+# ---------------------------------------------------------------------------
+def build_se_comparison(results_list, title="SE Comparison Across Methods"):
+    """
+    Horizontal lollipop chart: each method's SE as a dot with a line
+    extending from the Naive baseline. Shows % deviation clearly.
+    """
+    valid = [r for r in results_list
+             if r["se"] is not None and np.isfinite(r["se"])]
+    if not valid:
+        return go.Figure().update_layout(title="No data")
+
+    # Sort by SE (smallest first)
+    valid = sorted(valid, key=lambda r: r["se"])
+
+    naive_se = next((r["se"] for r in valid if r["method"] == "Naive_OLS"), None)
+    methods = [_nice_name(r["method"]) for r in valid]
+
+    fig = go.Figure()
+
+    for i, r in enumerate(valid):
+        color = _method_color(r["method"])
+        pct = ((r["se"] / naive_se - 1) * 100) if naive_se and naive_se > 0 else 0
+
+        # Stem line from Naive SE to this method's SE
+        if naive_se:
+            fig.add_trace(go.Scatter(
+                x=[naive_se, r["se"]], y=[i, i],
+                mode="lines",
+                line=dict(color=color, width=3),
+                showlegend=False, hoverinfo="skip",
+            ))
+
+        # Dot for this method's SE
+        pct_str = (f" ({pct:+.1f}%)" if abs(pct) < 1000
+                   else f" ({pct:+.0e}%)") if naive_se else ""
+        fig.add_trace(go.Scatter(
+            x=[r["se"]], y=[i],
+            mode="markers",
+            marker=dict(size=14, color=color,
+                        line=dict(color="white", width=2)),
+            showlegend=False,
+            hovertemplate=(
+                f"<b>{_nice_name(r['method'])}</b><br>"
+                f"SE = {_sfmt(r['se'])}{pct_str}<extra></extra>"
+            ),
+        ))
+
+        # Label to the right
+        fig.add_annotation(
+            x=r["se"], y=i,
+            text=f"  {_sfmt(r['se'])}{pct_str}",
+            showarrow=False, xanchor="left",
+            font=dict(size=11, color=color, family="monospace"),
+        )
+
+    # Vertical reference at Naive SE
+    if naive_se:
+        fig.add_shape(
+            type="line", x0=naive_se, x1=naive_se,
+            y0=-0.5, y1=len(valid) - 0.5,
+            line=dict(color="#7F8C8D", width=2, dash="dot"),
+        )
+        fig.add_annotation(
+            x=naive_se, y=len(valid) - 0.5,
+            text="Naive SE", showarrow=False, yshift=14,
+            font=dict(size=10, color="#7F8C8D"),
+        )
+
+    fig.update_layout(
+        title=dict(text=title, font=dict(size=14)),
+        xaxis_title="Standard Error",
+        yaxis=dict(
+            tickvals=list(range(len(valid))),
+            ticktext=methods,
+        ),
+        template=TEMPLATE_LIGHT,
+        height=max(300, 50 * len(valid) + 80),
+        margin=dict(l=130, r=160, t=50, b=50),
+        plot_bgcolor="rgba(0,0,0,0)",
+    )
+    return fig
+
+
+# ---------------------------------------------------------------------------
+# 12. CI Width Comparison — Horizontal bar chart sorted by width
+# ---------------------------------------------------------------------------
+def build_ci_bounds_comparison(results_list, theta_true=None,
+                                title="Confidence Interval Width"):
+    """
+    Horizontal bar chart of CI width per method, sorted narrowest-first.
+    Color-coded per method for instant recognition.
+    """
+    valid = [r for r in results_list
+             if r["ci_low"] is not None and np.isfinite(r["width"])]
+    if not valid:
+        return go.Figure().update_layout(title="No data")
+
+    # Sort by width (narrowest at top)
+    valid = sorted(valid, key=lambda r: r["width"])
+    narrowest = valid[0]["width"]
+
+    fig = go.Figure()
+
+    for i, r in enumerate(valid):
+        color = _method_color(r["method"])
+        pct_wider = ((r["width"] / narrowest - 1) * 100) if narrowest > 0 else 0
+        if i == 0:
+            label_suffix = " (narrowest)"
+        elif pct_wider < 1000:
+            label_suffix = f" (+{pct_wider:.1f}%)"
+        else:
+            label_suffix = f" (+{pct_wider:.0e}%)"
+
+        fig.add_trace(go.Bar(
+            y=[_nice_name(r["method"])],
+            x=[r["width"]],
+            orientation="h",
+            marker=dict(color=color, opacity=0.85,
+                        line=dict(color=color, width=1)),
+            showlegend=False,
+            hovertemplate=(
+                f"<b>{_nice_name(r['method'])}</b><br>"
+                f"Width = {_sfmt(r['width'])}<br>"
+                f"CI = [{_sfmt(r['ci_low'])}, {_sfmt(r['ci_high'])}]"
+                f"<extra></extra>"
+            ),
+        ))
+
+        # Width label to the right
+        fig.add_annotation(
+            x=r["width"], y=i,
+            text=f"  {_sfmt(r['width'])}{label_suffix}",
+            showarrow=False, xanchor="left",
+            font=dict(size=10, color=color, family="monospace"),
+        )
+
+    fig.update_layout(
+        title=dict(text=title, font=dict(size=14)),
+        xaxis_title="CI Width (upper \u2212 lower)",
+        yaxis=dict(categoryorder="array",
+                   categoryarray=[_nice_name(r["method"]) for r in valid]),
+        template=TEMPLATE_LIGHT,
+        height=max(300, 45 * len(valid) + 80),
+        margin=dict(l=130, r=180, t=50, b=50),
+        plot_bgcolor="rgba(0,0,0,0)",
+        bargap=0.3,
+    )
     return fig

@@ -62,8 +62,8 @@ def _build_amri_vs_aks(df):
     fig.add_hline(y=0.95, line=dict(color="#333", dash="dash"), row=1, col=1)
     fig.update_yaxes(title_text="Coverage", row=1, col=1)
     fig.update_yaxes(title_text="Avg Width", row=1, col=2)
-    fig.update_xaxes(title_text="Delta", row=1, col=1)
-    fig.update_xaxes(title_text="Delta", row=1, col=2)
+    fig.update_xaxes(title_text="\u03b4 (misspecification)", row=1, col=1)
+    fig.update_xaxes(title_text="\u03b4 (misspecification)", row=1, col=2)
 
     fig.update_layout(
         template=TEMPLATE_LIGHT, height=420,
@@ -92,7 +92,7 @@ def _build_theorem_plots(theorem_data):
             ))
         fig.update_layout(
             title="Theorem 1: Coverage Continuity",
-            xaxis_title="Delta", yaxis_title="Value",
+            xaxis_title="\u03b4", yaxis_title="Value",
             template=TEMPLATE_LIGHT, height=350,
         )
         figs.append(("Coverage Continuity", fig))

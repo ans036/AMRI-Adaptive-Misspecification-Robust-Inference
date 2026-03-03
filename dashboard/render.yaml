@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: amri-dashboard
+    runtime: python
+    buildCommand: pip install -r dashboard/requirements.txt
+    startCommand: cd dashboard && gunicorn app:server --bind 0.0.0.0:$PORT --workers 2 --timeout 120
+    envVars:
+      - key: DASH_DEBUG
+        value: "0"
+      - key: DASH_CACHE_DIR
+        value: /tmp/dash_cache
+      - key: PYTHON_VERSION
+        value: "3.11.0"
