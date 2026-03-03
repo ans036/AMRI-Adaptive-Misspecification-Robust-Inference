@@ -75,6 +75,11 @@
     border-radius: 0.5rem;
 }
 
+/* Make Plotly charts fill their container width */
+.js-plotly-plot .plotly {
+    width: 100% !important;
+}
+
 /* ---- Progress bar ---- */
 .progress {
     height: 1.5rem;
@@ -114,16 +119,6 @@
     letter-spacing: 0.02em;
 }
 
-/* ---- Responsive ---- */
-@media (max-width: 768px) {
-    .hero-section h1 {
-        font-size: 1.8rem;
-    }
-    .stat-card .stat-value {
-        font-size: 1.6rem;
-    }
-}
-
 /* ---- Formula block ---- */
 .formula-block {
     background: rgba(0, 0, 0, 0.03);
@@ -132,6 +127,13 @@
     padding: 1rem 1.25rem;
     font-family: 'Georgia', serif;
     margin: 1rem 0;
+}
+
+/* Markdown code blocks: allow horizontal scroll on mobile */
+.formula-block pre,
+pre, code {
+    overflow-x: auto;
+    max-width: 100%;
 }
 
 /* ---- Tab styling ---- */
@@ -175,4 +177,178 @@
     font-size: 1.2rem;
     font-weight: 700;
     font-family: 'Courier New', monospace;
+}
+
+/* Ensure tables can scroll horizontally on small screens */
+.table-responsive {
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Touch-friendly: larger tap targets for inputs/selects on mobile */
+@media (pointer: coarse) {
+    .form-select, .form-control, .btn {
+        min-height: 44px;
+    }
+    .form-check-input {
+        width: 1.25em;
+        height: 1.25em;
+    }
+    .method-checklist .form-check {
+        padding: 0.4rem 0.5rem 0.4rem 1.75rem;
+    }
+}
+
+/* ====================================================================
+   RESPONSIVE — Tablets (max-width: 768px)
+   ==================================================================== */
+@media (max-width: 768px) {
+    /* Hero */
+    .hero-section {
+        padding: 2rem 0 1.5rem;
+    }
+    .hero-section h1 {
+        font-size: 1.8rem;
+    }
+    .hero-section .lead {
+        font-size: 1rem;
+    }
+
+    /* Stat cards */
+    .stat-card .card-body {
+        padding: 1rem;
+    }
+    .stat-card .stat-value {
+        font-size: 1.6rem;
+    }
+    .stat-card .stat-label {
+        font-size: 0.78rem;
+    }
+
+    /* Sidebar: disable sticky on mobile (it stacks above content) */
+    .sim-sidebar .card {
+        position: static;
+    }
+
+    /* Tabs: slightly smaller text */
+    .nav-tabs .nav-link {
+        font-size: 0.82rem;
+        padding: 0.5rem 0.6rem;
+    }
+
+    /* Card hover: disable on touch (avoids stuck hover states) */
+    .card:hover {
+        transform: none;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Formula block: smaller padding */
+    .formula-block {
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+    }
+
+    /* Info banner stats */
+    .info-stat-label {
+        font-size: 0.65rem;
+    }
+    .info-stat-value {
+        font-size: 1rem;
+    }
+
+    /* Summary table: allow horizontal scroll */
+    .table-sm th {
+        font-size: 0.75rem;
+    }
+    .table-sm td {
+        font-size: 0.8rem;
+    }
+
+    /* Quick-link buttons: full width */
+    .quick-link-btn {
+        padding: 0.5rem 1rem;
+        display: block;
+        text-align: center;
+    }
+}
+
+/* ====================================================================
+   RESPONSIVE — Small phones (max-width: 576px)
+   ==================================================================== */
+@media (max-width: 576px) {
+    /* Hero */
+    .hero-section {
+        padding: 1.5rem 0 1rem;
+    }
+    .hero-section h1 {
+        font-size: 1.5rem;
+    }
+    .hero-section .lead {
+        font-size: 0.9rem;
+    }
+
+    /* Stat cards */
+    .stat-card .card-body {
+        padding: 0.75rem;
+    }
+    .stat-card .stat-value {
+        font-size: 1.4rem;
+    }
+    .stat-card .stat-label {
+        font-size: 0.72rem;
+    }
+
+    /* Card radius: slightly tighter */
+    .card {
+        border-radius: 0.5rem;
+    }
+
+    /* Tabs: wrap if needed */
+    .nav-tabs {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .nav-tabs .nav-link {
+        font-size: 0.78rem;
+        padding: 0.45rem 0.5rem;
+        white-space: nowrap;
+    }
+
+    /* Info banner: stack vertically if too many items */
+    .info-stat-value {
+        font-size: 0.95rem;
+    }
+
+    /* Summary table: smaller font */
+    .table-sm th {
+        font-size: 0.7rem;
+        letter-spacing: 0;
+    }
+    .table-sm td {
+        font-size: 0.75rem;
+    }
+
+    /* Progress bar */
+    .progress {
+        height: 1.2rem;
+    }
+}
+
+/* ====================================================================
+   RESPONSIVE — Extra small phones (max-width: 400px)
+   ==================================================================== */
+@media (max-width: 400px) {
+    .hero-section h1 {
+        font-size: 1.3rem;
+    }
+    .hero-section .lead {
+        font-size: 0.85rem;
+    }
+    .stat-card .stat-value {
+        font-size: 1.2rem;
+    }
+    .nav-tabs .nav-link {
+        font-size: 0.72rem;
+        padding: 0.4rem 0.4rem;
+    }
 }

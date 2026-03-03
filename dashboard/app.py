@@ -93,7 +93,7 @@ app.layout = dbc.Container(
         ),
     ],
     fluid=True,
-    className="px-4",
+    className="px-2 px-md-4",
 )
 
 

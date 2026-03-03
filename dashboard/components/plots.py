@@ -143,16 +143,18 @@ def build_forest_plot(results_list, theta_true, title="Inference Results"):
         )
 
     fig.update_layout(
-        title=dict(text=title, font=dict(size=16)),
+        title=dict(text=title, font=dict(size=14)),
         xaxis_title="Parameter Value",
         yaxis=dict(
             tickvals=list(range(len(valid_results))),
             ticktext=[_nice_name(r["method"]) for r in valid_results],
             autorange="reversed",
+            automargin=True,
         ),
+        xaxis=dict(automargin=True),
         template=TEMPLATE_LIGHT,
-        height=max(350, 55 * n_methods + 100),
-        margin=dict(l=140, r=180, t=60, b=50),
+        height=max(300, 50 * n_methods + 80),
+        margin=dict(l=10, r=10, t=50, b=40),
         plot_bgcolor="rgba(0,0,0,0)",
     )
 
@@ -209,10 +211,12 @@ def build_scatter_with_fit(X, Y, theta_true, intercept, title="Generated Data"):
     fig.update_layout(
         title=dict(text=title, font=dict(size=14)),
         xaxis_title="X", yaxis_title="Y",
+        xaxis=dict(automargin=True),
+        yaxis=dict(automargin=True),
         template=TEMPLATE_LIGHT,
-        height=350,
+        height=320,
         legend=dict(yanchor="top", y=0.99, xanchor="right", x=0.99, font=dict(size=10)),
-        margin=dict(l=50, r=20, t=50, b=50),
+        margin=dict(l=10, r=10, t=50, b=10),
     )
 
     return fig
@@ -250,11 +254,12 @@ def build_coverage_bar_chart(mc_results, alpha=0.05, title="Coverage by Method")
     fig.update_layout(
         title=dict(text=title, font=dict(size=14)),
         yaxis_title="Coverage",
-        yaxis=dict(range=[min(0.85, min(coverages) - 0.02) if coverages else 0.85, 1.0]),
+        yaxis=dict(range=[min(0.85, min(coverages) - 0.02) if coverages else 0.85, 1.0],
+                   automargin=True),
+        xaxis=dict(automargin=True, tickangle=-30),
         template=TEMPLATE_LIGHT,
-        height=380,
-        margin=dict(l=60, r=20, t=50, b=80),
-        xaxis_tickangle=-30,
+        height=350,
+        margin=dict(l=10, r=10, t=50, b=10),
     )
 
     return fig
@@ -282,10 +287,11 @@ def build_width_bar_chart(mc_results, title="Average CI Width"):
     fig.update_layout(
         title=dict(text=title, font=dict(size=14)),
         yaxis_title="Average CI Width",
+        yaxis=dict(automargin=True),
+        xaxis=dict(automargin=True, tickangle=-30),
         template=TEMPLATE_LIGHT,
-        height=380,
-        margin=dict(l=60, r=20, t=50, b=80),
-        xaxis_tickangle=-30,
+        height=350,
+        margin=dict(l=10, r=10, t=50, b=10),
     )
 
     return fig
@@ -339,14 +345,15 @@ def build_coverage_vs_delta(df, methods=None, dgp_filter=None,
         ))
 
     fig.update_layout(
-        title=dict(text=title, font=dict(size=16)),
+        title=dict(text=title, font=dict(size=14)),
         xaxis_title="Misspecification Severity (\u03b4)",
         yaxis_title="Coverage",
-        yaxis=dict(range=[0.85, 1.0]),
+        yaxis=dict(range=[0.85, 1.0], automargin=True),
+        xaxis=dict(automargin=True),
         template=TEMPLATE_LIGHT,
-        height=450,
+        height=400,
         legend=dict(font=dict(size=10)),
-        margin=dict(l=60, r=20, t=60, b=50),
+        margin=dict(l=10, r=10, t=50, b=40),
     )
 
     return fig
@@ -381,8 +388,9 @@ def build_coverage_heatmap(df, title="Coverage Heatmap"):
         title=dict(text=title, font=dict(size=14)),
         template=TEMPLATE_LIGHT,
         height=max(300, 35 * len(pivot.index) + 100),
-        margin=dict(l=140, r=20, t=60, b=80),
-        xaxis_tickangle=-30,
+        yaxis=dict(automargin=True),
+        xaxis=dict(automargin=True, tickangle=-30),
+        margin=dict(l=10, r=10, t=50, b=10),
     )
 
     return fig
@@ -420,10 +428,11 @@ def build_weight_histogram(weights, title="AMRI v2 Blending Weight Distribution"
         title=dict(text=title, font=dict(size=14)),
         xaxis_title="Blending Weight (w)",
         yaxis_title="Count",
-        xaxis=dict(range=[-0.05, 1.05]),
+        xaxis=dict(range=[-0.05, 1.05], automargin=True),
+        yaxis=dict(automargin=True),
         template=TEMPLATE_LIGHT,
-        height=350,
-        margin=dict(l=60, r=20, t=60, b=50),
+        height=320,
+        margin=dict(l=10, r=10, t=50, b=10),
     )
 
     return fig
@@ -569,9 +578,11 @@ def build_real_data_scatter(df, title="SE Comparison Across Datasets"):
     fig.update_layout(
         title=dict(text=title, font=dict(size=14)),
         xaxis_title="Naive SE", yaxis_title="HC3 SE",
+        xaxis=dict(automargin=True),
+        yaxis=dict(automargin=True),
         template=TEMPLATE_LIGHT,
-        height=400,
-        margin=dict(l=60, r=20, t=50, b=50),
+        height=380,
+        margin=dict(l=10, r=10, t=50, b=10),
     )
 
     return fig
@@ -601,9 +612,11 @@ def build_accuracy_ranking(mc_results, alpha=0.05,
     fig.update_layout(
         title=dict(text=title, font=dict(size=14)),
         xaxis_title="|Coverage - Nominal|",
+        xaxis=dict(automargin=True),
+        yaxis=dict(automargin=True),
         template=TEMPLATE_LIGHT,
-        height=max(300, 35 * len(methods) + 80),
-        margin=dict(l=140, r=20, t=50, b=50),
+        height=max(280, 35 * len(methods) + 80),
+        margin=dict(l=10, r=10, t=50, b=40),
     )
 
     return fig
@@ -682,13 +695,15 @@ def build_se_comparison(results_list, title="SE Comparison Across Methods"):
     fig.update_layout(
         title=dict(text=title, font=dict(size=14)),
         xaxis_title="Standard Error",
+        xaxis=dict(automargin=True),
         yaxis=dict(
             tickvals=list(range(len(valid))),
             ticktext=methods,
+            automargin=True,
         ),
         template=TEMPLATE_LIGHT,
-        height=max(300, 50 * len(valid) + 80),
-        margin=dict(l=130, r=160, t=50, b=50),
+        height=max(280, 45 * len(valid) + 80),
+        margin=dict(l=10, r=10, t=50, b=40),
         plot_bgcolor="rgba(0,0,0,0)",
     )
     return fig
@@ -750,11 +765,13 @@ def build_ci_bounds_comparison(results_list, theta_true=None,
     fig.update_layout(
         title=dict(text=title, font=dict(size=14)),
         xaxis_title="CI Width (upper \u2212 lower)",
+        xaxis=dict(automargin=True),
         yaxis=dict(categoryorder="array",
-                   categoryarray=[_nice_name(r["method"]) for r in valid]),
+                   categoryarray=[_nice_name(r["method"]) for r in valid],
+                   automargin=True),
         template=TEMPLATE_LIGHT,
-        height=max(300, 45 * len(valid) + 80),
-        margin=dict(l=130, r=180, t=50, b=50),
+        height=max(280, 40 * len(valid) + 80),
+        margin=dict(l=10, r=10, t=50, b=40),
         plot_bgcolor="rgba(0,0,0,0)",
         bargap=0.3,
     )

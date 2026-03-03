@@ -222,7 +222,7 @@ def layout(**kwargs):
                                                           type="number",
                                                           value=0, step=0.1,
                                                           className="mb-2"),
-                                            ], width=4),
+                                            ], xs=4, sm=4),
                                             dbc.Col([
                                                 dbc.Label("\u03b2\u2081",
                                                           className="form-label"),
@@ -230,7 +230,7 @@ def layout(**kwargs):
                                                           type="number",
                                                           value=1, step=0.1,
                                                           className="mb-2"),
-                                            ], width=4),
+                                            ], xs=4, sm=4),
                                             dbc.Col([
                                                 dbc.Label("\u03c3",
                                                           className="form-label"),
@@ -239,7 +239,7 @@ def layout(**kwargs):
                                                           value=1, min=0.01,
                                                           step=0.1,
                                                           className="mb-2"),
-                                            ], width=4),
+                                            ], xs=4, sm=4),
                                         ]),
                                     ]),
 
@@ -306,16 +306,16 @@ def layout(**kwargs):
                                     dbc.Textarea(
                                         id="sim-custom-x",
                                         placeholder="1.2, 3.4, 5.6, 7.8, ...",
-                                        className="mb-2", style={"height": "60px",
-                                                                  "fontSize": "12px"},
+                                        className="mb-2", style={"height": "70px",
+                                                                  "fontSize": "13px"},
                                     ),
                                     dbc.Label("Paste Y values (comma-separated)",
                                               className="form-label"),
                                     dbc.Textarea(
                                         id="sim-custom-y",
                                         placeholder="2.1, 4.3, 6.5, 8.7, ...",
-                                        className="mb-2", style={"height": "60px",
-                                                                  "fontSize": "12px"},
+                                        className="mb-2", style={"height": "70px",
+                                                                  "fontSize": "13px"},
                                     ),
                                     dbc.Label("True theta (optional)",
                                               className="form-label"),
@@ -924,26 +924,21 @@ def render_single_run(single_json, data_json, c1, c2):
         dbc.Row([
             dbc.Col(
                 html.Div([
-                    html.Div(label, style={"fontSize": "0.7rem",
-                                            "textTransform": "uppercase",
-                                            "letterSpacing": "0.05em",
-                                            "color": "#888"}),
-                    html.Div(val, style={"fontSize": "1.3rem",
-                                          "fontWeight": "700",
-                                          "color": color,
-                                          "fontFamily": "monospace",
-                                          "overflow": "hidden",
-                                          "textOverflow": "ellipsis",
-                                          "whiteSpace": "nowrap"}),
-                ], style={"textAlign": "center", "padding": "8px 0"}),
-                md=True,
+                    html.Div(label, className="info-stat-label"),
+                    html.Div(val, className="info-stat-value",
+                             style={"color": color,
+                                    "overflow": "hidden",
+                                    "textOverflow": "ellipsis",
+                                    "whiteSpace": "nowrap"}),
+                ], className="info-stat"),
+                xs=6, sm=3, md=True,
             )
             for label, val, color in info_items
         ]),
         style={
             "background": "#f8f9fa",
             "borderRadius": "8px",
-            "padding": "4px 12px",
+            "padding": "4px 8px",
             "marginBottom": "16px",
             "border": "1px solid #eee",
         },

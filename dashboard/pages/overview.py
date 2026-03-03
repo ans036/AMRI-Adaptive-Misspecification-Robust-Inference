@@ -39,10 +39,10 @@ def layout(**kwargs):
 
         # Summary Cards
         dbc.Row([
-            dbc.Col(stat_card("Scenarios", str(n_scenarios), "Simulation configurations", "primary"), md=3),
-            dbc.Col(stat_card("Methods", str(n_methods), "Compared head-to-head", "info"), md=3),
-            dbc.Col(stat_card("Datasets", "61", "Real-world validation", "success"), md=3),
-            dbc.Col(stat_card("AMRI v2 Coverage", amri_cov, "Average across all scenarios", "warning"), md=3),
+            dbc.Col(stat_card("Scenarios", str(n_scenarios), "Simulation configurations", "primary"), xs=6, sm=6, md=3),
+            dbc.Col(stat_card("Methods", str(n_methods), "Compared head-to-head", "info"), xs=6, sm=6, md=3),
+            dbc.Col(stat_card("Datasets", "61", "Real-world validation", "success"), xs=6, sm=6, md=3),
+            dbc.Col(stat_card("AMRI v2 Coverage", amri_cov, "Average across all scenarios", "warning"), xs=6, sm=6, md=3),
         ], className="mb-4 g-3"),
 
         # Hero Figure
@@ -88,7 +88,7 @@ switches to the robust SE. The transition is **smooth** (no discontinuous jumps)
                         """, style={"fontSize": "0.95rem"}),
                     ]),
                 ], className="h-100"),
-                md=8,
+                xs=12, md=8,
             ),
             dbc.Col(
                 dbc.Card([
@@ -129,7 +129,7 @@ switches to the robust SE. The transition is **smooth** (no discontinuous jumps)
                         ], vertical=True),
                     ]),
                 ], className="h-100"),
-                md=4,
+                xs=12, md=4,
             ),
         ], className="mb-4 g-3"),
 

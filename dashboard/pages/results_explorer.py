@@ -47,7 +47,7 @@ def layout(**kwargs):
                             multi=True,
                             placeholder="Select DGPs...",
                         ),
-                    ], md=4),
+                    ], xs=12, sm=6, md=4, className="mb-2 mb-md-0"),
                     dbc.Col([
                         dbc.Label("Methods", className="form-label"),
                         dcc.Dropdown(
@@ -57,7 +57,7 @@ def layout(**kwargs):
                             multi=True,
                             placeholder="Select methods...",
                         ),
-                    ], md=4),
+                    ], xs=12, sm=6, md=4, className="mb-2 mb-md-0"),
                     dbc.Col([
                         dbc.Label("Sample Sizes", className="form-label"),
                         dcc.Dropdown(
@@ -67,7 +67,7 @@ def layout(**kwargs):
                             multi=True,
                             placeholder="Select sample sizes...",
                         ),
-                    ], md=4),
+                    ], xs=12, sm=12, md=4),
                 ]),
             ]),
         ], className="mb-4"),
@@ -76,11 +76,11 @@ def layout(**kwargs):
         dbc.Row([
             dbc.Col(
                 dbc.Card(dbc.CardBody(dcc.Graph(id="res-coverage-delta"))),
-                md=7,
+                xs=12, md=7,
             ),
             dbc.Col(
                 dbc.Card(dbc.CardBody(dcc.Graph(id="res-heatmap"))),
-                md=5,
+                xs=12, md=5,
             ),
         ], className="mb-3 g-3"),
 
@@ -88,11 +88,11 @@ def layout(**kwargs):
         dbc.Row([
             dbc.Col(
                 dbc.Card(dbc.CardBody(dcc.Graph(id="res-width-chart"))),
-                md=6,
+                xs=12, md=6,
             ),
             dbc.Col(
                 dbc.Card(dbc.CardBody(dcc.Graph(id="res-accuracy-chart"))),
-                md=6,
+                xs=12, md=6,
             ),
         ], className="mb-3 g-3"),
     ], fluid=True)

@@ -33,11 +33,11 @@ def layout(**kwargs):
         dbc.Row([
             dbc.Col(
                 dbc.Card(dbc.CardBody(dcc.Graph(id="rd-se-scatter"))),
-                md=6,
+                xs=12, md=6,
             ),
             dbc.Col(
                 dbc.Card(dbc.CardBody(dcc.Graph(id="rd-ratio-hist"))),
-                md=6,
+                xs=12, md=6,
             ),
         ], className="mb-3 g-3"),
 
@@ -148,7 +148,7 @@ def update_detail(dataset):
                     html.P(col.replace("_", " ").title(), className="text-muted small mb-1"),
                     html.H5(str(val), className="mb-0"),
                 ]), className="text-center"),
-                md=2, sm=4, className="mb-2",
+                xs=6, sm=4, md=2, className="mb-2",
             )
         )
 
