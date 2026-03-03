@@ -435,6 +435,7 @@ def build_weight_histogram(weights, title="AMRI v2 Blending Weight Distribution"
 def build_diagnostic_panel(se_ratio, weight, c1, c2, n):
     """
     Visual number line showing where |log R| falls relative to thresholds.
+    Values shown in title/subtitle to avoid annotation overlap.
     """
     log_r = abs(np.log(se_ratio)) if se_ratio > 0 else 0
     lo = c1 / np.sqrt(n)
@@ -443,22 +444,22 @@ def build_diagnostic_panel(se_ratio, weight, c1, c2, n):
     fig = go.Figure()
 
     # Ensure enough space for all zones
-    x_max = max(hi * 2.5, log_r * 1.5, 0.5)
+    x_max = max(hi * 3, log_r * 1.5, 0.5)
 
     # Efficient zone (green)
-    fig.add_shape(type="rect", x0=0, x1=lo, y0=0.3, y1=0.7,
+    fig.add_shape(type="rect", x0=0, x1=lo, y0=0.25, y1=0.75,
                   fillcolor="rgba(44, 160, 44, 0.2)", line=dict(width=0))
     # Transition zone (yellow)
-    fig.add_shape(type="rect", x0=lo, x1=hi, y0=0.3, y1=0.7,
-                  fillcolor="rgba(255, 193, 7, 0.2)", line=dict(width=0))
+    fig.add_shape(type="rect", x0=lo, x1=hi, y0=0.25, y1=0.75,
+                  fillcolor="rgba(255, 193, 7, 0.25)", line=dict(width=0))
     # Robust zone (red)
-    fig.add_shape(type="rect", x0=hi, x1=x_max, y0=0.3, y1=0.7,
+    fig.add_shape(type="rect", x0=hi, x1=x_max, y0=0.25, y1=0.75,
                   fillcolor="rgba(214, 39, 40, 0.12)", line=dict(width=0))
 
     # Threshold lines
-    fig.add_shape(type="line", x0=lo, x1=lo, y0=0.2, y1=0.8,
+    fig.add_shape(type="line", x0=lo, x1=lo, y0=0.15, y1=0.85,
                   line=dict(color="#2ca02c", width=2, dash="dash"))
-    fig.add_shape(type="line", x0=hi, x1=hi, y0=0.2, y1=0.8,
+    fig.add_shape(type="line", x0=hi, x1=hi, y0=0.15, y1=0.85,
                   line=dict(color="#d62728", width=2, dash="dash"))
 
     # Current |log R| marker
@@ -473,49 +474,52 @@ def build_diagnostic_panel(se_ratio, weight, c1, c2, n):
         ),
     ))
 
-    # Marker label (positioned to avoid overlap)
-    marker_y = 0.82 if log_r < (lo + hi) / 2 else 0.82
-    fig.add_annotation(
-        x=log_r, y=marker_y,
-        text=f"|log R| = {log_r:.3f}",
-        showarrow=True, arrowhead=2, arrowsize=0.8,
-        ax=0, ay=-25,
-        font=dict(size=11, color="#2166AC"),
-    )
+    # Zone labels only (no numerical annotations on chart)
+    fig.add_annotation(x=lo / 2, y=0.08, text="Efficient",
+                       showarrow=False, font=dict(size=10, color="#2ca02c"))
+    fig.add_annotation(x=(lo + hi) / 2, y=0.08, text="Transition",
+                       showarrow=False, font=dict(size=10, color="#FF8C00"))
+    fig.add_annotation(x=min(hi + (x_max - hi) * 0.35, x_max * 0.75),
+                       y=0.08, text="Robust",
+                       showarrow=False, font=dict(size=10, color="#d62728"))
 
-    # Zone labels (at bottom, well spaced)
-    fig.add_annotation(x=lo / 2, y=0.12, text="Efficient",
-                       showarrow=False, font=dict(size=11, color="#2ca02c"))
-    fig.add_annotation(x=(lo + hi) / 2, y=0.12, text="Transition",
-                       showarrow=False, font=dict(size=11, color="#FF8C00"))
-    fig.add_annotation(x=min(hi + (x_max - hi) * 0.4, x_max * 0.8),
-                       y=0.12, text="Robust",
-                       showarrow=False, font=dict(size=11, color="#d62728"))
+    # Determine zone for subtitle color
+    if log_r < lo:
+        zone_txt, zone_clr = "Efficient", "#2ca02c"
+    elif log_r < hi:
+        zone_txt, zone_clr = "Transition", "#FF8C00"
+    else:
+        zone_txt, zone_clr = "Robust", "#d62728"
 
-    # Threshold labels (offset vertically to avoid collision)
-    fig.add_annotation(
-        x=lo, y=0.95,
-        text=f"c\u2081/\u221an = {lo:.3f}",
-        showarrow=False, font=dict(size=10, color="#2ca02c"),
-        xanchor="center",
-    )
-    fig.add_annotation(
-        x=hi, y=0.95,
-        text=f"c\u2082/\u221an = {hi:.3f}",
-        showarrow=False, font=dict(size=10, color="#d62728"),
-        xanchor="center",
-    )
+    # Add custom xaxis ticks at threshold positions
+    tick_vals = [0, lo, hi]
+    tick_text = ["0", f"c1/vn={lo:.3f}", f"c2/vn={hi:.3f}"]
+    # Add ticks at regular intervals for context
+    for t in [0.1, 0.2, 0.3, 0.4, 0.5]:
+        if t < x_max and abs(t - lo) > 0.02 and abs(t - hi) > 0.02:
+            tick_vals.append(t)
+            tick_text.append(str(t))
 
     fig.update_layout(
         title=dict(
-            text=f"AMRI Diagnostic: R = {se_ratio:.3f}, w = {weight:.3f}",
-            font=dict(size=13),
+            text=(f"AMRI Diagnostic: R = {_sfmt(se_ratio, 3)}, "
+                  f"|log R| = {_sfmt(log_r, 3)}, "
+                  f"w = {_sfmt(weight, 3)}"
+                  f"<br><span style='font-size:11px;color:{zone_clr}'>"
+                  f"Zone: {zone_txt}</span>"),
+            font=dict(size=12),
         ),
-        xaxis=dict(range=[0, x_max], title="|log(SE ratio)|"),
-        yaxis=dict(range=[0, 1.05], visible=False),
+        xaxis=dict(
+            range=[0, x_max],
+            title="|log(SE ratio)|",
+            tickvals=tick_vals,
+            ticktext=tick_text,
+            tickfont=dict(size=9),
+        ),
+        yaxis=dict(range=[0, 1], visible=False),
         template=TEMPLATE_LIGHT,
-        height=240,
-        margin=dict(l=40, r=20, t=50, b=40),
+        height=220,
+        margin=dict(l=20, r=20, t=65, b=45),
     )
 
     return fig
